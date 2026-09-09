@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Venue Quiz Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #1f1a17;
+        --muted: #675b51;
+        --paper: #f8f3eb;
+        --paper-strong: #fffaf4;
+        --sage: #6d7d63;
+        --sage-deep: #46523f;
+        --rose-clay: #b36f5d;
+        --rose-soft: #e6c3b6;
+        --champagne: #ead8b8;
+        --line: rgba(58, 46, 37, 0.12);
+        --shadow: 0 24px 60px rgba(45, 34, 26, 0.14);
+        --radius-xl: 32px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(234, 216, 184, 0.9), transparent 28%),
+          radial-gradient(circle at right 15%, rgba(179, 111, 93, 0.18), transparent 24%),
+          linear-gradient(180deg, #f7efe3 0%, #f4ede5 45%, #efe7de 100%);
+        min-height: 100vh;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(31, 26, 23, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(31, 26, 23, 0.025) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.28), transparent 75%);
+      }
+
+      .shell {
+        width: min(1280px, calc(100% - 32px));
+        margin: 24px auto;
+        padding: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 36px;
+        background: rgba(255, 250, 244, 0.78);
+        backdrop-filter: blur(14px);
+        box-shadow: var(--shadow);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .crest {
+        width: 48px;
+        height: 48px;
+        border-radius: 16px;
+        background:
+          linear-gradient(160deg, rgba(179, 111, 93, 0.9), rgba(234, 216, 184, 0.95));
+        position: relative;
+        overflow: hidden;
+      }
+
+      .crest::before,
+      .crest::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        background: rgba(255, 250, 244, 0.55);
+      }
+
+      .crest::before {
+        width: 44px;
+        height: 44px;
+        top: -14px;
+        right: -12px;
+      }
+
+      .crest::after {
+        width: 28px;
+        height: 28px;
+        bottom: 6px;
+        left: 6px;
+      }
+
+      .eyebrow {
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .brand h1 {
+        margin: 3px 0 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.9rem;
+        line-height: 1;
+        font-weight: 700;
+      }
+
+      .view-switcher {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .view-switcher button {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 10px 16px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+      }
+
+      .view-switcher button.active {
+        background: var(--sage-deep);
+        color: var(--paper-strong);
+        border-color: var(--sage-deep);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 24px;
+        padding-top: 24px;
+      }
+
+      .rail,
+      .canvas {
+        min-width: 0;
+      }
+
+      .rail-card,
+      .screen,
+      .mini-card,
+      .result-card,
+      .runner-card,
+      .chip-group,
+      .stat-card,
+      .email-box {
+        border: 1px solid var(--line);
+        background: rgba(255, 251, 246, 0.92);
+        border-radius: var(--radius-lg);
+      }
+
+      .rail-card {
+        padding: 22px;
+        position: sticky;
+        top: 24px;
+      }
+
+      .rail-title {
+        margin: 0 0 10px;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 2rem;
+        line-height: 0.95;
+      }
+
+      .rail-copy {
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+
+      .stage-list {
+        margin: 22px 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 12px;
+      }
+
+      .stage-list li {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(109, 125, 99, 0.12), rgba(109, 125, 99, 0.05));
+      }
+
+      .stage-no {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        background: var(--paper-strong);
+        font-weight: 800;
+        color: var(--sage-deep);
+      }
+
+      .legend {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mini-card {
+        padding: 16px;
+      }
+
+      .mini-card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .mini-card span {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .canvas {
+        position: relative;
+      }
+
+      .screen {
+        display: none;
+        padding: 26px;
+        box-shadow: 0 20px 48px rgba(56, 39, 22, 0.08);
+      }
+
+      .screen.active {
+        display: block;
+        animation: rise 260ms ease;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 20px;
+      }
+
+      .hero-copy {
+        padding: 18px 8px 18px 0;
+      }
+
+      .hero h2,
+      .screen h2,
+      .result-card h3 {
+        margin: 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(2.4rem, 4vw, 4.1rem);
+        line-height: 0.95;
+      }
+
+      .hero p,
+      .screen p,
+      .result-copy,
+      .input-row label,
+      .fine-print,
+      .runner-meta,
+      .stat-card span,
+      .disclaimer {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .primary-btn,
+      .secondary-btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 14px 20px;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .primary-btn {
+        background: var(--sage-deep);
+        color: var(--paper-strong);
+        box-shadow: 0 14px 28px rgba(70, 82, 63, 0.24);
+      }
+
+      .secondary-btn {
+        background: rgba(179, 111, 93, 0.12);
+        color: var(--rose-clay);
+      }
+
+      .hero-panel {
+        border-radius: 28px;
+        min-height: 420px;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        background:
+          linear-gradient(180deg, rgba(255, 250, 244, 0.04), rgba(255, 250, 244, 0.34)),
+          radial-gradient(circle at top, rgba(234, 216, 184, 0.55), transparent 35%),
+          linear-gradient(160deg, #7d8c6d 0%, #56624d 28%, #d7b6a7 72%, #f0dfc3 100%);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .hero-panel::before,
+      .hero-panel::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(2px);
+      }
+
+      .hero-panel::before {
+        width: 320px;
+        height: 320px;
+        right: -80px;
+        top: -70px;
+        background: rgba(255, 250, 244, 0.24);
+      }
+
+      .hero-panel::after {
+        width: 220px;
+        height: 220px;
+        left: -40px;
+        bottom: -60px;
+        background: rgba(179, 111, 93, 0.3);
+      }
+
+      .floating-note {
+        position: absolute;
+        background: rgba(255, 250, 244, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 18px;
+        padding: 14px 16px;
+        box-shadow: 0 18px 34px rgba(51, 38, 29, 0.16);
+        max-width: 220px;
+      }
+
+      .floating-note.top {
+        top: 28px;
+        left: 28px;
+      }
+
+      .floating-note.bottom {
+        bottom: 28px;
+        right: 28px;
+      }
+
+      .floating-note strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .floating-note span {
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.45;
+      }
+
+      .progress-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .progress-track {
+        flex: 1;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(70, 82, 63, 0.12);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        width: 41%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--sage-deep), var(--rose-clay));
+      }
+
+      .question-card {
+        padding: 24px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 250, 244, 0.92));
+        border: 1px solid var(--line);
+      }
+
+      .question-label {
+        display: inline-block;
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(234, 216, 184, 0.55);
+        color: var(--sage-deep);
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .question-title {
+        font-family: "Cormorant Garamond", serif;
+        font-size: clamp(2rem, 3.4vw, 3rem);
+        line-height: 0.96;
+        margin: 0 0 10px;
+      }
+
+      .question-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .option {
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.88);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .option.active {
+        border-color: rgba(70, 82, 63, 0.4);
+        box-shadow: 0 18px 24px rgba(70, 82, 63, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .option strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .option span {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      .question-footer {
+        margin-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .assist-line {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .email-layout {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 20px;
+      }
+
+      .email-box {
+        padding: 26px;
+      }
+
+      .input-row {
+        display: grid;
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .input-row input {
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 16px;
+        border: 1px solid rgba(58, 46, 37, 0.14);
+        background: rgba(255, 255, 255, 0.92);
+        font: inherit;
+      }
+
+      .consent {
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(109, 125, 99, 0.08);
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.55;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-card strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 1.25rem;
+      }
+
+      .results-layout {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 20px;
+      }
+
+      .result-card {
+        overflow: hidden;
+      }
+
+      .result-visual {
+        min-height: 300px;
+        background:
+          linear-gradient(180deg, rgba(255, 250, 244, 0.08), rgba(255, 250, 244, 0.36)),
+          radial-gradient(circle at top, rgba(234, 216, 184, 0.6), transparent 32%),
+          linear-gradient(150deg, #81906f 0%, #d2c29a 55%, #c48572 100%);
+        position: relative;
+      }
+
+      .result-badge {
+        position: absolute;
+        top: 22px;
+        left: 22px;
+        display: inline-block;
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: rgba(255, 250, 244, 0.88);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .result-content {
+        padding: 24px;
+      }
+
+      .result-subtitle {
+        color: var(--rose-clay);
+        font-size: 0.82rem;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        font-weight: 800;
+      }
+
+      .chip-group {
+        padding: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(109, 125, 99, 0.12);
+        color: var(--sage-deep);
+        font-size: 0.83rem;
+        font-weight: 700;
+      }
+
+      .disclaimer {
+        margin-top: 16px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(179, 111, 93, 0.1);
+      }
+
+      .runners {
+        display: grid;
+        gap: 14px;
+      }
+
+      .runner-card {
+        padding: 18px;
+      }
+
+      .runner-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 16px;
+      }
+
+      .runner-card h4 {
+        margin: 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 1.8rem;
+        line-height: 0.95;
+      }
+
+      .score-pill {
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(70, 82, 63, 0.09);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--sage-deep);
+      }
+
+      .mock-footer {
+        margin-top: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 1040px) {
+        .layout,
+        .hero,
+        .email-layout,
+        .results-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .rail-card {
+          position: static;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          width: min(100% - 16px, 1280px);
+          margin: 8px auto;
+          padding: 14px;
+          border-radius: 24px;
+        }
+
+        .topbar {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .question-grid,
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .question-footer,
+        .mock-footer {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .screen {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="crest"></div>
+          <div>
+            <div class="eyebrow">Author Made Quiz Prototype</div>
+            <h1>Orlando Venue Match</h1>
+          </div>
+        </div>
+        <div class="view-switcher" aria-label="Mockup views">
+          <button class="active" data-view="intro">Intro</button>
+          <button data-view="question">Question Flow</button>
+          <button data-view="email">Email Gate</button>
+          <button data-view="results">Results</button>
+        </div>
+      </div>
+
+      <div class="layout">
+        <aside class="rail">
+          <div class="rail-card">
+            <p class="eyebrow">Review Notes</p>
+            <h2 class="rail-title">Editorial, not chatbot.</h2>
+            <p class="rail-copy">
+              This direction aims to feel like a premium planning tool inside a wedding editorial brand:
+              warm, refined, slightly romantic, and still conversion-focused.
+            </p>
+
+            <ul class="stage-list">
+              <li><span class="stage-no">1</span><span>Invitation with a clear promise</span></li>
+              <li><span class="stage-no">2</span><span>Single-question focus for easy progress</span></li>
+              <li><span class="stage-no">3</span><span>Email capture before reveal</span></li>
+              <li><span class="stage-no">4</span><span>High-confidence venue shortlist</span></li>
+            </ul>
+
+            <div class="legend">
+              <div class="mini-card">
+                <strong>Visual direction</strong>
+                <span>Garden-estate warmth, old-world serif typography, soft structure, strong hierarchy.</span>
+              </div>
+              <div class="mini-card">
+                <strong>Prototype assumption</strong>
+                <span>Embedded on Squarespace, loaded from Vercel, with live ranking and Kit sync in the background.</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="canvas">
+          <section class="screen active" data-screen="intro">
+            <div class="hero">
+              <div class="hero-copy">
+                <p class="eyebrow">Lead Magnet Landing Experience</p>
+                <h2>Which Orlando wedding venue fits the way you want your day to feel?</h2>
+                <p>
+                  A 3-minute quiz that narrows dozens of venues into one best-fit recommendation and a shortlist of runners-up.
+                  Built to feel like thoughtful planning help, not a generic personality test.
+                </p>
+                <div class="hero-actions">
+                  <button class="primary-btn" type="button">Start the quiz</button>
+                  <button class="secondary-btn" type="button">Preview the result style</button>
+                </div>
+              </div>
+
+              <div class="hero-panel" aria-hidden="true">
+                <div class="floating-note top">
+                  <strong>Top pick</strong>
+                  <span>One venue matched to budget, guest count, vibe, and must-have features.</span>
+                </div>
+                <div class="floating-note bottom">
+                  <strong>Three runners-up</strong>
+                  <span>A wider shortlist so the result feels useful, not overly absolute.</span>
+                </div>
+              </div>
+            </div>
+            <div class="mock-footer">
+              <span>Suggested placement: dedicated Squarespace page, popup CTA, or in-content blog callout.</span>
+              <span>Design intent: elevated editorial with clear conversion focus.</span>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="question">
+            <div class="progress-row">
+              <strong>Question 5 of 12</strong>
+              <div class="progress-track" aria-hidden="true"><div class="progress-fill"></div></div>
+              <span class="assist-line">About 90 seconds left</span>
+            </div>
+
+            <div class="question-card">
+              <span class="question-label">Location Preference</span>
+              <h2 class="question-title">Which part of the Orlando area feels most convenient for your venue search?</h2>
+              <p>
+                This question is treated as a preference, not a hard rule, so the app can still recommend strong near-matches.
+              </p>
+
+              <div class="question-grid">
+                <div class="option active">
+                  <strong>Winter Park and nearby</strong>
+                  <span>Historic neighborhoods, polished gardens, and estate-style settings.</span>
+                </div>
+                <div class="option">
+                  <strong>Orlando proper</strong>
+                  <span>Urban convenience, museums, classic venues, and central access.</span>
+                </div>
+                <div class="option">
+                  <strong>North and northwest</strong>
+                  <span>Mount Dora, Howey-in-the-Hills, Eustis, and similar areas.</span>
+                </div>
+                <div class="option">
+                  <strong>I am open to anything</strong>
+                  <span>Prioritize the overall fit more than the map pin.</span>
+                </div>
+              </div>
+
+              <div class="question-footer">
+                <span class="assist-line">Tone target: calm, useful, and a little aspirational.</span>
+                <button class="primary-btn" type="button">Next question</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="email">
+            <div class="email-layout">
+              <div class="email-box">
+                <p class="eyebrow">Reveal Step</p>
+                <h2>See your best-fit venue and shortlist.</h2>
+                <p>
+                  Enter your email to unlock your results and get venue-focused follow-up recommendations.
+                </p>
+
+                <div class="input-row">
+                  <label for="email">Email address</label>
+                  <input id="email" type="email" value="you@example.com" />
+                </div>
+
+                <div class="consent">
+                  By requesting your results, you agree to receive planning emails and venue recommendations. You can unsubscribe at any time.
+                </div>
+
+                <div class="hero-actions">
+                  <button class="primary-btn" type="button">Show my matches</button>
+                  <button class="secondary-btn" type="button">Back to my answers</button>
+                </div>
+              </div>
+
+              <div class="email-box">
+                <p class="eyebrow">What the user gets</p>
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <strong>1 top venue</strong>
+                    <span>The strongest match based on hard filters and preferences.</span>
+                  </div>
+                  <div class="stat-card">
+                    <strong>3 runners-up</strong>
+                    <span>Backup options that still fit the overall direction.</span>
+                  </div>
+                  <div class="stat-card">
+                    <strong>Tailored reasons</strong>
+                    <span>Result copy generated from the user's answers and structured venue data.</span>
+                  </div>
+                  <div class="stat-card">
+                    <strong>Future nurture tags</strong>
+                    <span>Garden, historic, micro wedding, European, and similar buckets.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="screen" data-screen="results">
+            <div class="results-layout">
+              <article class="result-card">
+                <div class="result-visual">
+                  <div class="result-badge">Closest match demo</div>
+                </div>
+                <div class="result-content">
+                  <div class="result-subtitle">Your top venue</div>
+                  <h3>Leu Gardens</h3>
+                  <p class="result-copy">
+                    A strong fit for couples who want romantic outdoor portraits, a garden-forward ceremony setting,
+                    and a venue that still offers indoor coverage when weather matters.
+                  </p>
+
+                  <div class="chip-group">
+                    <span class="chip">Garden</span>
+                    <span class="chip">Historic</span>
+                    <span class="chip">Micro-friendly</span>
+                    <span class="chip">Indoor backup</span>
+                  </div>
+
+                  <div class="disclaimer">
+                    Your original hard filters were tight, so this view can also handle a "closest matches" state with a visible disclaimer when no venue meets every must-have.
+                  </div>
+
+                  <div class="hero-actions">
+                    <button class="primary-btn" type="button">View venue details</button>
+                    <button class="secondary-btn" type="button">Retake with new filters</button>
+                  </div>
+                </div>
+              </article>
+
+              <div class="runners">
+                <div class="runner-card">
+                  <div class="runner-top">
+                    <div>
+                      <p class="eyebrow">Runner-up 1</p>
+                      <h4>Maitland Art &amp; History Museums</h4>
+                    </div>
+                    <span class="score-pill">Score 84</span>
+                  </div>
+                  <p class="runner-meta">Historic gardens, multiple visual settings, and a strong fit for intimate weddings with character.</p>
+                </div>
+
+                <div class="runner-card">
+                  <div class="runner-top">
+                    <div>
+                      <p class="eyebrow">Runner-up 2</p>
+                      <h4>Capen House</h4>
+                    </div>
+                    <span class="score-pill">Score 81</span>
+                  </div>
+                  <p class="runner-meta">Romantic Southern character, lakefront outdoor space, and a strong match for smaller guest counts.</p>
+                </div>
+
+                <div class="runner-card">
+                  <div class="runner-top">
+                    <div>
+                      <p class="eyebrow">Runner-up 3</p>
+                      <h4>Casa Feliz</h4>
+                    </div>
+                    <span class="score-pill">Score 79</span>
+                  </div>
+                  <p class="runner-meta">A stronger old-world option when the user leans European, intimate, and historic rather than fully botanical.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      const buttons = document.querySelectorAll('[data-view]');
+      const screens = document.querySelectorAll('[data-screen]');
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const { view } = button.dataset;
+
+          buttons.forEach((item) => item.classList.toggle('active', item === button));
+          screens.forEach((screen) => {
+            screen.classList.toggle('active', screen.dataset.screen === view);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
