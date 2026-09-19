@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Design preview: the Author Made venue quiz embedded as a Squarespace Code Block, continuing seamlessly from the site header and into the footer."
+    />
+    <title>Squarespace Embed Preview | Author Made Venue Quiz</title>
+    <style>
+      /* Brand tokens are duplicated here on purpose: this file simulates a Squarespace host page rendered around the iframed app. */
+      :root {
+        --ink: #181614;
+        --cream: #f3efe8;
+        --sand: #ddd2c2;
+        --rust: #a76425;
+        --serif: Didot, "Bodoni 72", "Times New Roman", serif;
+        --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: #ccc4b8;
+      }
+
+      body {
+        background: var(--cream);
+        color: var(--ink);
+        font-family: var(--sans);
+        margin: 0;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      /* ---- Approximation of the real Squarespace site header (lives outside the iframe) ---- */
+      .site-header {
+        align-items: center;
+        background: var(--ink);
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 1fr auto 1fr;
+        min-height: 94px;
+        padding: 18px 42px;
+      }
+
+      .header-nav {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+      }
+
+      .header-nav:last-child {
+        justify-content: flex-end;
+      }
+
+      .header-nav a {
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .header-nav a:hover {
+        color: var(--sand);
+      }
+
+      .site-wordmark {
+        color: #fff;
+        font-family: var(--serif);
+        font-size: 30px;
+        line-height: 1;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .site-wordmark small {
+        display: block;
+        font-family: var(--sans);
+        font-size: 9px;
+        font-weight: 700;
+        margin-top: 6px;
+        text-transform: uppercase;
+      }
+
+      /* ---- Approximation of the real Squarespace site footer (lives outside the iframe) ---- */
+      .site-footer {
+        background: var(--ink);
+        color: #fff;
+        padding: 56px 42px 28px;
+      }
+
+      .site-footer-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        justify-content: center;
+        margin-bottom: 28px;
+      }
+
+      .site-footer-nav a {
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .site-footer-nav a:hover {
+        color: var(--sand);
+      }
+
+      .site-footer p {
+        font-size: 11px;
+        letter-spacing: 0.02em;
+        line-height: 1.7;
+        margin: 6px 0;
+        opacity: 0.75;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .site-footer .footer-credit {
+        opacity: 0.5;
+      }
+
+      /* ---- Structural wrappers only; visible outlines are added in inspect mode below ---- */
+      .embed-page-section,
+      .embed-code-block,
+      .embed-iframe-wrap {
+        display: block;
+        margin: 0;
+        padding: 0;
+      }
+
+      #venue-quiz-frame {
+        border: 0;
+        display: block;
+        height: 900px;
+        width: 100%;
+      }
+
+      /* ---- Device frame / viewport simulator ---- */
+      .page-frame {
+        margin: 0 auto;
+        max-width: 100%;
+      }
+
+      body.mode-mobile {
+        background: #ccc4b8;
+        padding: 32px 0;
+      }
+
+      body.mode-mobile .page-frame {
+        background: var(--cream);
+        border-radius: 34px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
+        height: 844px;
+        overflow-y: auto;
+        width: 390px;
+      }
+
+      /* ---- Inspector mode: labels the Squarespace section, Code Block, and iframe boundary ---- */
+      body.inspect-mode .embed-page-section,
+      body.inspect-mode .embed-code-block,
+      body.inspect-mode .embed-iframe-wrap {
+        position: relative;
+      }
+
+      body.inspect-mode .embed-page-section {
+        outline: 2px dashed #2f6fed;
+        outline-offset: -2px;
+      }
+
+      body.inspect-mode .embed-code-block {
+        outline: 2px dashed #c2410c;
+        outline-offset: -8px;
+      }
+
+      body.inspect-mode .embed-iframe-wrap {
+        outline: 2px dashed #0f9d58;
+        outline-offset: -14px;
+      }
+
+      body.inspect-mode .embed-page-section::before,
+      body.inspect-mode .embed-code-block::before,
+      body.inspect-mode .embed-iframe-wrap::before {
+        color: #fff;
+        font-family: var(--sans);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        padding: 3px 8px;
+        position: absolute;
+        text-transform: uppercase;
+        z-index: 5;
+      }
+
+      body.inspect-mode .embed-page-section::before {
+        background: #2f6fed;
+        content: "Squarespace Page Section";
+        left: 0;
+        top: 0;
+        transform: translateY(-100%);
+      }
+
+      body.inspect-mode .embed-code-block::before {
+        background: #c2410c;
+        content: "Code Block";
+        left: 6px;
+        top: 22px;
+      }
+
+      body.inspect-mode .embed-iframe-wrap::before {
+        background: #0f9d58;
+        bottom: 6px;
+        content: "iframe \2192 embed-app.html (Vercel)";
+        left: 12px;
+        top: auto;
+      }
+
+      /* ---- Floating design-preview control panel (never appears on the live site) ---- */
+      .preview-controls {
+        background: #181614;
+        border-radius: 10px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+        bottom: 18px;
+        color: #fff;
+        font-family: var(--sans);
+        padding: 16px 18px;
+        position: fixed;
+        right: 18px;
+        width: 240px;
+        z-index: 20;
+      }
+
+      .preview-controls h2 {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        margin: 0 0 4px;
+        text-transform: uppercase;
+      }
+
+      .preview-controls p {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 11px;
+        line-height: 1.5;
+        margin: 0 0 14px;
+      }
+
+      .preview-controls .control-row {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .preview-controls .control-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .preview-controls label {
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .preview-controls .segmented {
+        display: flex;
+        gap: 6px;
+      }
+
+      .preview-controls .segmented button {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: #fff;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 6px 10px;
+        text-transform: uppercase;
+      }
+
+      .preview-controls .segmented button.is-active {
+        background: var(--rust);
+        border-color: var(--rust);
+      }
+
+      .preview-controls .toggle {
+        appearance: none;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 999px;
+        cursor: pointer;
+        height: 20px;
+        margin: 0;
+        position: relative;
+        width: 36px;
+      }
+
+      .preview-controls .toggle::after {
+        background: #fff;
+        border-radius: 50%;
+        content: "";
+        height: 16px;
+        left: 2px;
+        position: absolute;
+        top: 2px;
+        transition: transform 140ms ease;
+        width: 16px;
+      }
+
+      .preview-controls .toggle:checked {
+        background: var(--rust);
+      }
+
+      .preview-controls .toggle:checked::after {
+        transform: translateX(16px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-frame" id="page-frame">
+      <header class="site-header">
+        <nav class="header-nav" aria-label="Author Made navigation">
+          <a href="https://www.authormadephoto.com/home" target="_blank" rel="noreferrer">Home</a>
+          <a href="https://www.authormadephoto.com/about" target="_blank" rel="noreferrer">About</a>
+          <a href="https://www.authormadephoto.com/wedding-photography-pricing-orlando" target="_blank" rel="noreferrer">Pricing</a>
+        </nav>
+        <a class="site-wordmark" href="https://www.authormadephoto.com" target="_blank" rel="noreferrer">
+          Author * Made
+          <small>Orlando Wedding Photography + Videography</small>
+        </a>
+        <nav class="header-nav" aria-label="Secondary navigation">
+          <a href="https://www.authormadephoto.com/real-weddings" target="_blank" rel="noreferrer">Real Weddings</a>
+          <a href="https://www.authormadephoto.com/blog" target="_blank" rel="noreferrer">Blog</a>
+          <a href="https://www.authormadephoto.com/contact" target="_blank" rel="noreferrer">Contact</a>
+        </nav>
+      </header>
+
+      <section class="embed-page-section" aria-label="Venue quiz page section">
+        <div class="embed-code-block">
+          <div class="embed-iframe-wrap">
+            <!-- No sandbox attribute here: file:// iframes are blocked by sandboxing in some browsers. Add sandbox="allow-scripts allow-forms allow-popups" once src points at the deployed https:// Vercel app. -->
+            <iframe
+              id="venue-quiz-frame"
+              src="embed-app.html"
+              title="Which Orlando Wedding Venue Fits You?"
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <nav class="site-footer-nav" aria-label="Footer navigation">
+          <a href="https://www.authormadephoto.com/about" target="_blank" rel="noreferrer">About</a>
+          <a href="https://www.authormadephoto.com/wedding-photography-pricing-orlando" target="_blank" rel="noreferrer">Pricing</a>
+          <a href="https://www.authormadephoto.com/micro-wedding-photographer-pricing-orlando" target="_blank" rel="noreferrer">Micro Weddings</a>
+          <a href="https://www.authormadephoto.com/real-weddings" target="_blank" rel="noreferrer">Real Weddings</a>
+          <a href="https://www.authormadephoto.com/blog" target="_blank" rel="noreferrer">Blog</a>
+          <a href="https://www.authormadephoto.com/contact" target="_blank" rel="noreferrer">Contact</a>
+        </nav>
+        <p>Orlando &amp; Central Florida affordable wedding photographer &amp; videographer</p>
+        <p>Serving weddings in Orlando, Winter Garden, Winter Park, Celebration, Kissimmee, Lake Nona, Daytona Beach, Cocoa Beach, and the rest of Central Florida and worldwide</p>
+        <p>All content copyright &copy; 2026 Author Made</p>
+        <p class="footer-credit">Brand &amp; website design by Author Brand Studio</p>
+      </footer>
+    </div>
+
+    <div class="preview-controls">
+      <h2>Design Preview Controls</h2>
+      <p>Visible for this review only. Neither control exists on the live Squarespace page.</p>
+      <div class="control-row">
+        <label for="inspect-toggle">Show embed structure</label>
+        <input class="toggle" id="inspect-toggle" type="checkbox" />
+      </div>
+      <div class="control-row">
+        <label>Viewport</label>
+        <div class="segmented" role="group" aria-label="Viewport size">
+          <button type="button" data-viewport="desktop" class="is-active">Desktop</button>
+          <button type="button" data-viewport="mobile">Mobile</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const frame = document.getElementById("venue-quiz-frame");
+      const inspectToggle = document.getElementById("inspect-toggle");
+      const viewportButtons = document.querySelectorAll("[data-viewport]");
+
+      // Production should verify event.origin against the deployed Vercel app URL instead of accepting any origin.
+      window.addEventListener("message", (event) => {
+        const data = event.data;
+        if (data && data.type === "quiz-resize" && typeof data.height === "number") {
+          frame.style.height = Math.max(data.height, 480) + "px";
+        }
+      });
+
+      inspectToggle.addEventListener("change", () => {
+        document.body.classList.toggle("inspect-mode", inspectToggle.checked);
+      });
+
+      viewportButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const isMobile = button.dataset.viewport === "mobile";
+          document.body.classList.toggle("mode-mobile", isMobile);
+          viewportButtons.forEach((btn) => btn.classList.toggle("is-active", btn === button));
+        });
+      });
+    </script>
+  </body>
+</html>

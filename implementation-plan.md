@@ -336,22 +336,74 @@ Recommended optional fields:
 - Store env vars for Kit and Supabase credentials
 - Provide preview deployments for design review
 
-## Squarespace Embed Plan
+## Squarespace Embed Plan (Confirmed For authormadephoto.com)
 
-### v1 Recommendation
+### Confirmed Setup Facts
 
-Use an iframe embed first.
+- Site plan: Squarespace Business (supports page-specific Code Blocks and site-wide Code Injection).
+- Embed method: a new dedicated page (e.g. `/venue-quiz`) that keeps the normal site header, footer, and nav. The quiz itself lives inside a single contained element on that page, not a full-bleed template override.
+- No DNS changes. The Vercel app is referenced by its `*.vercel.app` URL (or a Vercel-issued alias), not a custom subdomain.
+- Vercel and Supabase accounts already exist and will be reused.
+- Email/CRM: Kit (ConvertKit), per the existing plan.
+- Venue data will be maintained by a non-technical owner (you or your wife), so the update path must not require touching code.
 
-Benefits:
+### Embed Mechanics
 
-- avoids CSS collisions with Squarespace
-- keeps deployment independent
-- makes debugging easier
-- lets the quiz evolve without touching core site templates
+1. Create a new blank Squarespace page: **Venue Quiz** (or similar), URL slug `/venue-quiz`.
+2. In the page content area, add a **Code Block** (not a full-page code injection). This keeps the Squarespace header, footer, and nav visible and avoids needing "Advanced/Developer" page settings.
+3. Inside the Code Block, embed:
+   ```html
+   <iframe
+     id="venue-quiz-frame"
+     src="https://<your-vercel-app>.vercel.app/"
+     style="width:100%; border:0; min-height:900px;"
+     loading="lazy"
+     title="Which Orlando Wedding Venue Fits You?"
+   ></iframe>
+   <script>
+     window.addEventListener("message", (event) => {
+       if (event.origin !== "https://<your-vercel-app>.vercel.app") return;
+       if (event.data && event.data.type === "quiz-resize") {
+         document.getElementById("venue-quiz-frame").style.height = event.data.height + "px";
+       }
+     });
+   </script>
+   ```
+4. The Vercel app posts its content height to the parent window on load and on every view change (intro → quiz → email → results), so the iframe never scrolls internally or shows dead space:
+   ```js
+   function reportHeight() {
+     window.parent.postMessage({ type: "quiz-resize", height: document.body.scrollHeight }, "*");
+   }
+   ```
+   Call `reportHeight()` after every `showView()` call and on window resize.
+5. Add `X-Frame-Options`/`Content-Security-Policy: frame-ancestors https://www.authormadephoto.com` on the Vercel app (not "deny") so it is explicitly embeddable only by your Squarespace domain.
 
-### v2 Option
+### Why This Approach
 
-If the iframe feels too separate, explore script-based embedding after the prototype is validated.
+- A Code Block on a normal page (vs. per-page Code Injection with "no header/footer") means visitors keep site navigation and your existing footer/legal links — matches your requirement that the quiz be "contained within a specific element," not a takeover page.
+- Business-tier Code Blocks support raw HTML/JS/CSS without needing Developer Mode.
+- The postMessage resize handshake avoids the classic "iframe with a scrollbar inside a scrollbar" problem on mobile Squarespace pages.
+- No DNS work is required, so nothing about your existing email, MX records, or Squarespace domain settings is touched.
+
+### Non-Technical Venue Data Updates
+
+Since venue data will be maintained by a non-technical owner:
+
+- Keep the canonical venue list in a **Google Sheet** (mirrors the current CSV columns), not directly in Supabase or code.
+- Publish the sheet as CSV (File → Share → Publish to web → CSV) or connect it read-only via the Google Sheets API.
+- Build one small internal admin action (a Vercel API route + a simple password-gated button, not exposed publicly) that re-imports the sheet into Supabase and re-runs the launch-eligibility validation.
+- The importer must print a plain-English warning list (e.g. "Missing budget for venue X — excluded from matching") so mistakes are obvious without reading logs.
+- This means adding or editing a venue is: edit a row in the Google Sheet → click "Re-import" → done. No code or Supabase console access needed.
+
+### Rollout Steps
+
+1. Deploy the current static prototype's logic as the Vercel app (Phase 1, already mostly done via `localhost-prototype.html`).
+2. Add the `postMessage` resize handshake and `frame-ancestors` CSP to the Vercel app.
+3. Create the Squarespace `/venue-quiz` page and Code Block per the embed mechanics above.
+4. Test on desktop and mobile Squarespace preview, confirming no double-scrollbars and that the iframe height tracks each quiz step.
+5. Wire up Kit subscriber upsert + tagging from the Vercel API route.
+6. Set up the Google Sheet + re-import admin action for venue data.
+7. Soft-launch the page unlinked, QA the full flow end-to-end, then add a nav link / CTA button pointing to `/venue-quiz`.
 
 ## Build Phases
 
@@ -399,12 +451,64 @@ If the iframe feels too separate, explore script-based embedding after the proto
 - Kit tags are applied consistently.
 - The experience loads inside Squarespace without layout breakage.
 
+## Account Setup Checklist
+
+The code scaffold (package.json, /api serverless functions, supabase/schema.sql) is already in this
+repo. These are the account/dashboard steps only you can do, in order:
+
+### 1. Supabase project
+
+1. Create a new project at supabase.com (or reuse an existing empty one).
+2. Open the SQL Editor and run the contents of `supabase/schema.sql` once.
+3. Go to Project Settings -> API and copy the **Project URL** and the **service_role key**.
+4. In your local `.env` (copied from `.env.example`), set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+
+### 2. Kit (ConvertKit) API key
+
+1. In Kit, go to Account Settings -> Developer -> API and click "Add a new key".
+2. Copy the key immediately (Kit will not show it again) and set `KIT_API_KEY` in `.env`.
+3. Check your existing Kit tags against `api/lib/tags.ts`'s `KIT_TAG_NAMES` map. The integration
+   creates-or-reuses tags by exact name (case-insensitive), so edit the right-hand values in that
+   file if your existing tags use different names (e.g. `"Garden Wedding"` instead of `"garden"`).
+
+### 3. Publish the venue Google Sheet
+
+1. Create a Google Sheet and import `Author_Made_Venue_Quiz_Database_V2.xlsx - Venue Database.csv`
+   (File -> Import -> Upload) so the column headers match exactly.
+2. File -> Share -> Publish to web -> select the venue tab -> format **CSV** -> Publish.
+3. Set `VENUE_SHEET_CSV_URL` in `.env` to the published link.
+4. Pick a random shared secret string and set it as `IMPORT_ADMIN_SECRET` in `.env` (also add the
+   same value in Vercel's env vars once deployed - this gates `POST /api/import-venues`).
+
+### 4. Vercel project
+
+1. In the Vercel dashboard, "Add New... -> Project" and import `michaeltkuo/wedding-venue-quiz` from GitHub.
+2. Framework preset: "Other" (no build command needed - static files + `/api` functions are zero-config).
+3. Add all five `.env` variables (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `KIT_API_KEY`,
+   `VENUE_SHEET_CSV_URL`, `IMPORT_ADMIN_SECRET`) under Project Settings -> Environment Variables.
+4. Deploy. Note the resulting `*.vercel.app` URL for the Squarespace embed mechanics above.
+
+### 5. First data import
+
+Once deployed (or running `npm run dev` locally with Vercel CLI), trigger the importer once:
+
+```bash
+curl -X POST https://<your-vercel-app>.vercel.app/api/import-venues \
+  -H "x-import-secret: <the IMPORT_ADMIN_SECRET value>"
+```
+
+This should report `imported` and `launchEligible` counts, plus a `warnings` list naming any venue
+still missing budget or capacity data. Re-run this any time the Google Sheet changes.
+
+### 6. Verify end to end
+
+Load the deployed URL directly, complete the quiz, and submit an email. Confirm a row appears in
+Supabase's `quiz_submissions` table and the subscriber/tags appear in Kit.
+
 ## Immediate Next Steps
 
-1. Scaffold the Vercel app.
-2. Create the Supabase schema.
-3. Write the CSV importer.
-4. Implement the ranking engine.
-5. Build the frontend screens.
-6. Add Kit API integration.
-7. Embed the deployed app in Squarespace.
+1. Complete the Account Setup Checklist above (Supabase, Kit, Google Sheet, Vercel).
+2. Run the first venue import and spot-check `launch_eligible` results.
+3. Deploy and smoke-test the full quiz -> email -> results flow against real data.
+4. Update the iframe `src` in the Squarespace Code Block with the real `*.vercel.app` URL.
+5. Soft-launch the Squarespace `/venue-quiz` page unlinked, QA, then link it from the site nav/CTA.

@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Embeddable build of the Author Made Orlando wedding venue quiz, designed to be iframed into a Squarespace Code Block."
+    />
+    <title>Which Orlando Wedding Venue Fits You? | Author Made</title>
+    <style>
+      :root {
+        --ink: #181614;
+        --ink-soft: #2c2925;
+        --cream: #f3efe8;
+        --cream-strong: #fffdf9;
+        --sand: #ddd2c2;
+        --rust: #a76425;
+        --rust-deep: #824a18;
+        --line-light: rgba(255, 255, 255, 0.42);
+        --line-dark: rgba(24, 22, 20, 0.2);
+        --serif: Didot, "Bodoni 72", "Times New Roman", serif;
+        --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--ink);
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 16px;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.is-active {
+        display: block;
+      }
+
+      .intro-hero {
+        background-color: #39332c;
+        background-image:
+          linear-gradient(90deg, rgba(18, 16, 14, 0.8) 0%, rgba(18, 16, 14, 0.5) 41%, rgba(18, 16, 14, 0.03) 76%),
+          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w");
+        background-position: center;
+        background-size: cover;
+        color: #fff;
+        position: relative;
+      }
+
+      .intro-content {
+        align-items: start;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        margin: 0 auto;
+        max-width: 1440px;
+        min-height: 640px;
+        padding: 86px 42px 76px;
+      }
+
+      .kicker {
+        color: inherit;
+        font-family: var(--sans);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.4;
+        margin: 0 0 18px;
+        max-width: 470px;
+        text-transform: uppercase;
+      }
+
+      .intro-content h1,
+      .results-hero h1 {
+        font-family: var(--serif);
+        font-size: 72px;
+        font-weight: 400;
+        line-height: 0.91;
+        margin: 0;
+        max-width: 680px;
+        text-transform: uppercase;
+      }
+
+      .intro-content p:not(.kicker) {
+        font-size: 17px;
+        line-height: 1.6;
+        margin: 28px 0 30px;
+        max-width: 490px;
+      }
+
+      .button-primary,
+      .button-secondary,
+      .button-text,
+      .answer-option {
+        border-radius: 0;
+      }
+
+      .button-primary {
+        background: var(--rust);
+        border: 1px solid var(--rust);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        min-height: 52px;
+        padding: 14px 24px;
+        text-transform: uppercase;
+        transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+      }
+
+      .button-primary:hover {
+        background: var(--rust-deep);
+        border-color: var(--rust-deep);
+        transform: translateY(-1px);
+      }
+
+      .button-primary:disabled {
+        background: #ad9f90;
+        border-color: #ad9f90;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .button-secondary {
+        background: transparent;
+        border: 1px solid currentColor;
+        color: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        min-height: 52px;
+        padding: 14px 24px;
+        text-transform: uppercase;
+      }
+
+      .button-secondary:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .button-text {
+        background: none;
+        border: 0;
+        color: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 0;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-transform: uppercase;
+      }
+
+      .button-text:hover {
+        color: var(--rust);
+      }
+
+      .intro-details {
+        background: var(--cream-strong);
+        border-top: 1px solid var(--line-dark);
+        display: grid;
+        grid-template-columns: 1.1fr 1fr 1fr;
+      }
+
+      .intro-detail {
+        border-right: 1px solid var(--line-dark);
+        min-height: 142px;
+        padding: 28px 34px;
+      }
+
+      .intro-detail:last-child {
+        border-right: 0;
+      }
+
+      .intro-detail strong {
+        display: block;
+        font-family: var(--serif);
+        font-size: 25px;
+        font-weight: 400;
+        line-height: 1;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+      }
+
+      .intro-detail span {
+        color: #5d554e;
+        display: block;
+        font-size: 13px;
+        line-height: 1.55;
+        max-width: 330px;
+      }
+
+      .quiz-view,
+      .email-view {
+        background: var(--cream);
+      }
+
+      .quiz-status-bar {
+        align-items: center;
+        background: var(--cream-strong);
+        border-bottom: 1px solid var(--line-dark);
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        padding: 16px 42px;
+      }
+
+      .quiz-status-bar .button-text {
+        color: #5d554e;
+      }
+
+      .quiz-status-bar .button-text:hover {
+        color: var(--rust-deep);
+      }
+
+      .quiz-status-label {
+        color: #5d554e;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .quiz-grid,
+      .email-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 36%) 1fr;
+      }
+
+      .quiz-aside,
+      .email-aside {
+        background-color: #4a3a2a;
+        background-image:
+          linear-gradient(180deg, rgba(20, 18, 16, 0.38), rgba(20, 18, 16, 0.7)),
+          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/f5b863bd-1dc8-474e-b408-58bd98ff2ad7/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w");
+        background-position: center;
+        background-size: cover;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 42px;
+      }
+
+      .email-aside {
+        background-image:
+          linear-gradient(180deg, rgba(20, 18, 16, 0.28), rgba(20, 18, 16, 0.76)),
+          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/e589994d-cf0a-40cf-8e2e-6b04f1a5e424/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+Maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w");
+      }
+
+      .aside-copy h2,
+      .email-aside h2 {
+        font-family: var(--serif);
+        font-size: 46px;
+        font-weight: 400;
+        line-height: 0.94;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .aside-copy p,
+      .email-aside p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 18px 0 0;
+        max-width: 310px;
+      }
+
+      .progress-list {
+        display: grid;
+        gap: 7px;
+        margin-top: 30px;
+      }
+
+      .progress-step {
+        background: rgba(255, 255, 255, 0.32);
+        height: 3px;
+      }
+
+      .progress-step.is-complete {
+        background: #fff;
+      }
+
+      .aside-footnote {
+        border-top: 1px solid var(--line-light);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.45;
+        margin-top: 40px;
+        padding-top: 18px;
+        text-transform: uppercase;
+      }
+
+      .question-panel,
+      .email-panel {
+        align-items: center;
+        display: flex;
+        padding: 60px 8vw;
+      }
+
+      .question-wrap,
+      .email-wrap {
+        margin: 0 auto;
+        max-width: 780px;
+        width: 100%;
+      }
+
+      .question-count {
+        color: var(--rust-deep);
+        font-size: 12px;
+        font-weight: 700;
+        margin: 0 0 22px;
+        text-transform: uppercase;
+      }
+
+      .question-wrap h1,
+      .email-wrap h1 {
+        font-family: var(--serif);
+        font-size: 54px;
+        font-weight: 400;
+        line-height: 0.95;
+        margin: 0;
+        max-width: 760px;
+        text-transform: uppercase;
+      }
+
+      .question-description,
+      .email-wrap > p {
+        color: #5d554e;
+        font-size: 16px;
+        line-height: 1.65;
+        margin: 20px 0 28px;
+        max-width: 610px;
+      }
+
+      .filter-note {
+        border-left: 3px solid var(--rust);
+        color: #5d554e;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.5;
+        margin: 0 0 24px;
+        max-width: 600px;
+        padding: 11px 14px;
+        text-transform: uppercase;
+      }
+
+      .answer-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .answer-option {
+        background: var(--cream-strong);
+        border: 1px solid var(--line-dark);
+        color: var(--ink);
+        min-height: 118px;
+        padding: 18px;
+        text-align: left;
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .answer-option:hover {
+        border-color: var(--rust);
+        transform: translateY(-1px);
+      }
+
+      .answer-option.is-selected {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+
+      .answer-index {
+        color: var(--rust);
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .answer-option.is-selected .answer-index {
+        color: var(--sand);
+      }
+
+      .answer-title {
+        display: block;
+        font-family: var(--serif);
+        font-size: 22px;
+        font-weight: 400;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .answer-description {
+        color: #5d554e;
+        display: block;
+        font-size: 12px;
+        line-height: 1.45;
+        margin-top: 8px;
+      }
+
+      .answer-option.is-selected .answer-description {
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .question-actions {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 28px;
+      }
+
+      .question-actions .button-text {
+        color: #5d554e;
+      }
+
+      .question-actions .button-text:hover {
+        color: var(--rust-deep);
+      }
+
+      .email-panel {
+        background: var(--cream-strong);
+      }
+
+      .email-form {
+        margin-top: 32px;
+        max-width: 590px;
+      }
+
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+      }
+
+      .email-form input[type="email"] {
+        background: #fff;
+        border: 1px solid var(--line-dark);
+        border-radius: 0;
+        color: var(--ink);
+        font-size: 17px;
+        min-height: 56px;
+        padding: 14px 16px;
+        width: 100%;
+      }
+
+      .email-form input[type="email"]:focus {
+        border-color: var(--rust);
+        outline: 2px solid rgba(167, 100, 37, 0.2);
+        outline-offset: 2px;
+      }
+
+      .consent-label {
+        align-items: flex-start;
+        color: #5d554e;
+        display: flex;
+        font-size: 13px;
+        gap: 10px;
+        line-height: 1.55;
+        margin: 18px 0 24px;
+      }
+
+      .consent-label input {
+        accent-color: var(--rust);
+        flex: 0 0 auto;
+        height: 17px;
+        margin: 2px 0 0;
+        width: 17px;
+      }
+
+      .form-error {
+        color: #9a2f27;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.45;
+        margin: 0 0 16px;
+        min-height: 0;
+      }
+
+      .prototype-notice {
+        border-top: 1px solid var(--line-dark);
+        color: #5d554e;
+        font-size: 11px;
+        line-height: 1.5;
+        margin-top: 28px;
+        padding-top: 16px;
+        text-transform: uppercase;
+      }
+
+      .results-view {
+        background: var(--cream);
+      }
+
+      .results-hero {
+        align-items: flex-end;
+        background-color: #5c4736;
+        background-image:
+          linear-gradient(90deg, rgba(18, 16, 14, 0.8) 0%, rgba(18, 16, 14, 0.49) 50%, rgba(18, 16, 14, 0.12) 100%),
+          var(--result-image);
+        background-position: center;
+        background-size: cover;
+        color: #fff;
+        display: flex;
+        min-height: 640px;
+        padding: 66px 42px;
+      }
+
+      .results-hero-content {
+        max-width: 700px;
+      }
+
+      .results-hero h1 {
+        font-size: 76px;
+        max-width: 740px;
+      }
+
+      .result-intro {
+        font-size: 17px;
+        line-height: 1.62;
+        margin: 24px 0 0;
+        max-width: 600px;
+      }
+
+      .match-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 25px;
+      }
+
+      .match-tag {
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 8px 10px;
+        text-transform: uppercase;
+      }
+
+      .result-disclaimer {
+        background: #d9c0a8;
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.55;
+        padding: 18px 42px;
+      }
+
+      .result-actions {
+        background: var(--cream-strong);
+        border-bottom: 1px solid var(--line-dark);
+        display: flex;
+        gap: 12px;
+        padding: 22px 42px;
+      }
+
+      .result-actions .button-secondary {
+        color: var(--ink);
+      }
+
+      .result-actions .button-secondary:hover {
+        background: var(--cream);
+      }
+
+      .runners-section {
+        margin: 0 auto;
+        max-width: 1440px;
+        padding: 56px 42px 76px;
+      }
+
+      .section-kicker {
+        color: var(--rust-deep);
+        font-size: 12px;
+        font-weight: 700;
+        margin: 0 0 12px;
+        text-transform: uppercase;
+      }
+
+      .runners-heading {
+        font-family: var(--serif);
+        font-size: 52px;
+        font-weight: 400;
+        line-height: 0.95;
+        margin: 0 0 34px;
+        text-transform: uppercase;
+      }
+
+      .runner-grid {
+        display: grid;
+        gap: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .runner {
+        border-left: 1px solid var(--line-dark);
+        min-height: 235px;
+        padding: 24px 28px;
+      }
+
+      .runner:first-child {
+        border-left: 0;
+      }
+
+      .runner-number {
+        color: var(--rust);
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 34px;
+        text-transform: uppercase;
+      }
+
+      .runner h3 {
+        font-family: var(--serif);
+        font-size: 33px;
+        font-weight: 400;
+        line-height: 0.94;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .runner p {
+        color: #5d554e;
+        font-size: 13px;
+        line-height: 1.58;
+        margin: 14px 0 0;
+      }
+
+      .runner a {
+        color: var(--rust-deep);
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 19px;
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        text-transform: uppercase;
+      }
+
+      .empty-runners {
+        border-top: 1px solid var(--line-dark);
+        color: #5d554e;
+        font-size: 15px;
+        line-height: 1.6;
+        padding-top: 22px;
+      }
+
+      @media (max-width: 980px) {
+        .quiz-grid,
+        .email-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .quiz-aside,
+        .email-aside {
+          min-height: 310px;
+        }
+
+        .quiz-aside .progress-list,
+        .aside-footnote {
+          display: none;
+        }
+
+        .question-panel,
+        .email-panel {
+          padding: 48px 42px 60px;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .quiz-status-bar {
+          padding: 12px 20px;
+        }
+
+        .intro-hero {
+          background-position: 62% center;
+        }
+
+        .intro-content {
+          min-height: 520px;
+          padding: 48px 20px 44px;
+        }
+
+        .intro-content h1,
+        .results-hero h1 {
+          font-size: 47px;
+          line-height: 0.94;
+        }
+
+        .intro-content p:not(.kicker) {
+          font-size: 15px;
+          margin: 22px 0 24px;
+        }
+
+        .intro-details {
+          grid-template-columns: 1fr;
+        }
+
+        .intro-detail {
+          border-bottom: 1px solid var(--line-dark);
+          border-right: 0;
+          min-height: 0;
+          padding: 24px 20px;
+        }
+
+        .intro-detail:last-child {
+          border-bottom: 0;
+        }
+
+        .quiz-aside,
+        .email-aside {
+          min-height: 245px;
+          padding: 28px 20px;
+        }
+
+        .aside-copy h2,
+        .email-aside h2 {
+          font-size: 35px;
+        }
+
+        .question-panel,
+        .email-panel {
+          padding: 38px 20px 48px;
+        }
+
+        .question-wrap h1,
+        .email-wrap h1 {
+          font-size: 40px;
+        }
+
+        .question-description,
+        .email-wrap > p {
+          font-size: 15px;
+        }
+
+        .answer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .answer-option {
+          min-height: 106px;
+        }
+
+        .question-actions,
+        .result-actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .question-actions {
+          gap: 16px;
+        }
+
+        .question-actions .button-primary,
+        .result-actions .button-primary,
+        .result-actions .button-secondary {
+          width: 100%;
+        }
+
+        .results-hero {
+          background-position: 60% center;
+          min-height: 520px;
+          padding: 44px 20px;
+        }
+
+        .result-intro {
+          font-size: 15px;
+        }
+
+        .result-disclaimer,
+        .result-actions,
+        .runners-section {
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+
+        .runners-heading {
+          font-size: 41px;
+        }
+
+        .runner-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .runner {
+          border-left: 0;
+          border-top: 1px solid var(--line-dark);
+          min-height: 0;
+          padding: 24px 0;
+        }
+
+        .runner:first-child {
+          border-top: 0;
+          padding-top: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Embeddable build: no site header/footer; the Squarespace host page supplies both around this iframe. -->
+    <main id="app">
+      <section class="view is-active" data-view="intro">
+        <div class="intro-hero">
+          <div class="intro-content">
+            <p class="kicker">A venue quiz from Author Made</p>
+            <h1>Which Orlando wedding venue fits your day?</h1>
+            <p>
+              Tell us what matters most. We will narrow the search to one best-fit venue and a few more worth seeing.
+            </p>
+            <button class="button-primary" type="button" data-action="start">Find My Venue Match</button>
+          </div>
+        </div>
+
+        <div class="intro-details" aria-label="Quiz highlights">
+          <div class="intro-detail">
+            <strong>10 Questions</strong>
+            <span>A short, focused planning check-in built around the decisions that change your venue shortlist.</span>
+          </div>
+          <div class="intro-detail">
+            <strong>One Best Fit</strong>
+            <span>Budget and guest count shape the match before style, setting, and extras refine the results.</span>
+          </div>
+          <div class="intro-detail">
+            <strong>Three More To See</strong>
+            <span>Because finding a venue should give you a confident place to start, not a single take-it-or-leave-it answer.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="view quiz-view" data-view="quiz" aria-live="polite">
+        <div class="quiz-status-bar">
+          <button type="button" class="button-text" data-action="restart">Start Over</button>
+          <span class="quiz-status-label" id="header-progress">Question 1 of 10</span>
+        </div>
+        <div class="quiz-grid">
+          <aside class="quiz-aside">
+            <div class="aside-copy">
+              <p class="kicker" id="aside-kicker">Your venue direction</p>
+              <h2 id="aside-heading">A few details make a big difference.</h2>
+              <p id="aside-description">We will use your answers to build a focused shortlist from the Author Made venue database.</p>
+            </div>
+            <div>
+              <div class="progress-list" id="progress-list" aria-label="Quiz progress"></div>
+              <p class="aside-footnote">Budget and guest count are used as must-have filters.</p>
+            </div>
+          </aside>
+          <section class="question-panel">
+            <div class="question-wrap" id="question-root"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view email-view" data-view="email">
+        <div class="quiz-status-bar">
+          <button type="button" class="button-text" data-action="restart">Start Over</button>
+          <span class="quiz-status-label">Your matches are ready</span>
+        </div>
+        <div class="email-grid">
+          <aside class="email-aside">
+            <div>
+              <p class="kicker">One last detail</p>
+              <h2>Save your venue shortlist.</h2>
+              <p>Enter your email to see the match we found for your wedding day and get venue-focused planning ideas from Author Made.</p>
+            </div>
+            <p class="aside-footnote">Your quiz answers are used to personalize this shortlist.</p>
+          </aside>
+          <section class="email-panel">
+            <div class="email-wrap">
+              <p class="question-count">Your results are ready</p>
+              <h1>Where should we send your venue match?</h1>
+              <p>Your result will appear right here after you submit. In the live build, this step will also add you to the Author Made venue email list.</p>
+              <form class="email-form" id="email-form" novalidate>
+                <label class="field-label" for="email">Email Address</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+                <label class="consent-label" for="consent">
+                  <input id="consent" name="consent" type="checkbox" required />
+                  <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
+                </label>
+                <p class="form-error" id="form-error" role="alert"></p>
+                <button class="button-primary" type="submit">Show My Matches</button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view results-view" data-view="results" aria-live="polite">
+        <section class="results-hero" id="results-hero">
+          <div class="results-hero-content">
+            <p class="kicker" id="result-kicker">Your top venue match</p>
+            <h1 id="result-title">Leu Gardens</h1>
+            <p class="result-intro" id="result-summary"></p>
+            <div class="match-tags" id="match-tags"></div>
+          </div>
+        </section>
+        <div class="result-disclaimer" id="result-disclaimer" hidden></div>
+        <div class="result-actions">
+          <a class="button-primary" id="result-link" href="#" target="_blank" rel="noreferrer">Read The Venue Review</a>
+          <button class="button-secondary" type="button" data-action="restart">Retake With Different Priorities</button>
+        </div>
+        <section class="runners-section">
+          <p class="section-kicker" id="runners-kicker">Also worth a look</p>
+          <h2 class="runners-heading" id="runners-heading">More venues to see</h2>
+          <div class="runner-grid" id="runner-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      // Generic Author Made photography used only as a hero-image fallback until the venue sheet has
+      // a per-venue "Hero Image URL" column (which would flow through as topVenue.heroImageUrl below).
+      const FALLBACK_IMAGES = [
+        "https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w",
+        "https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/e589994d-cf0a-40cf-8e2e-6b04f1a5e424/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w",
+        "https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/f5b863bd-1dc8-474e-b408-58bd98ff2ad7/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w",
+        "https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/32ea3105-6399-4bbf-907c-a55b5a52fa27/Small+intimate+microwedding+best+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+Maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w"
+      ];
+
+      function fallbackImageFor(id) {
+        let hash = 0;
+        for (const char of String(id)) {
+          hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+        }
+        return FALLBACK_IMAGES[hash % FALLBACK_IMAGES.length];
+      }
+
+      const questions = [
+        {
+          id: "vibe",
+          category: "Your Vision",
+          heading: "What should your venue feel like the moment you arrive?",
+          description: "Start with the atmosphere that feels most like the wedding you have been picturing.",
+          asideHeading: "The feeling comes first.",
+          asideDescription: "We use the visual direction of your day to rank the venues that clear your must-haves.",
+          options: [
+            { value: "garden", title: "Garden Romance", description: "Lush grounds, flowers, open air, and golden-hour portraits." },
+            { value: "european", title: "Old-World Character", description: "Historic homes, arches, courtyards, and a sense of place." },
+            { value: "modern", title: "Modern + Editorial", description: "Galleries, museums, clean lines, and city energy." },
+            { value: "rustic", title: "Relaxed + Rustic", description: "Wood, water, barns, natural texture, and an easygoing feel." },
+            { value: "classic", title: "Classic Elegance", description: "Timeless rooms, traditional polish, and a dressed-up celebration." }
+          ]
+        },
+        {
+          id: "guestCount",
+          category: "Your Guest List",
+          heading: "About how many people are you inviting?",
+          description: "Choose the closest number you expect to host. This is one of the must-have filters for your shortlist.",
+          asideHeading: "The room has to work.",
+          asideDescription: "We will only rank venues that can comfortably support the size of celebration you select.",
+          hardFilter: true,
+          options: [
+            { value: "up-to-50", minimumCapacity: 50, title: "Up To 50", description: "An intimate gathering, elopement, or small micro wedding." },
+            { value: "51-100", minimumCapacity: 100, title: "51 To 100", description: "A smaller celebration with room for your favorite people." },
+            { value: "101-150", minimumCapacity: 150, title: "101 To 150", description: "A mid-size wedding with a fuller dance floor and dinner service." },
+            { value: "151-200", minimumCapacity: 200, title: "151 To 200", description: "A larger day that needs meaningful room to move." },
+            { value: "201-250", minimumCapacity: 250, title: "201 To 250", description: "A substantial celebration that needs a genuinely large venue." },
+            { value: "251-350", minimumCapacity: 350, title: "251 To 350", description: "A large wedding that needs the biggest spaces in the current database." }
+          ]
+        },
+        {
+          id: "budget",
+          category: "Your Budget",
+          heading: "What is your comfort zone for the venue rental?",
+          description: "This is treated as a must-have filter using the budget categories in the current venue database.",
+          asideHeading: "A good match respects the math.",
+          asideDescription: "The prototype uses the stated venue-budget fit from the research database, not a guessed total-wedding cost.",
+          hardFilter: true,
+          options: [
+            { value: "under-2k", title: "Under $2,000", description: "I need a venue with an under-$2k option." },
+            { value: "under-5k", title: "Under $5,000", description: "I am looking for a venue with an under-$5k option." },
+            { value: "flexible", title: "I Am Flexible", description: "Overall fit matters more than a fixed venue-rental ceiling." }
+          ]
+        },
+        {
+          id: "format",
+          category: "Your Day",
+          heading: "What kind of celebration are you planning at the venue?",
+          description: "The answer helps distinguish full-wedding venues from reception-focused spaces.",
+          asideHeading: "Picture the flow of the day.",
+          asideDescription: "Some venues shine for a ceremony and reception in one place. Others are a better fit for the party afterward.",
+          options: [
+            { value: "full", title: "Ceremony + Reception", description: "One venue for both parts of the day." },
+            { value: "reception", title: "Reception First", description: "I mainly need a stylish place to celebrate afterward." },
+            { value: "open", title: "I Am Open", description: "I am still deciding how the day will be structured." }
+          ]
+        },
+        {
+          id: "setting",
+          category: "Your Setting",
+          heading: "How do you want the space to work with the Florida weather?",
+          description: "Choose the setting arrangement that feels most comfortable for your day.",
+          asideHeading: "The forecast is part of the plan.",
+          asideDescription: "Outdoor beauty and a solid indoor option do not have to be competing priorities.",
+          options: [
+            { value: "outdoor", title: "Outdoor First", description: "The ceremony and portraits need to feel outside and connected to the landscape." },
+            { value: "indoor", title: "Indoor First", description: "A climate-controlled interior is the priority." },
+            { value: "both", title: "The Best Of Both", description: "I want outside beauty with a real indoor option for the event." },
+            { value: "open", title: "I Am Open", description: "The venue itself matters more than a fixed indoor or outdoor plan." }
+          ]
+        },
+        {
+          id: "location",
+          category: "Your Area",
+          heading: "Which part of Central Florida feels most convenient?",
+          description: "Location is a preference in the prototype, so a great match can still travel a little beyond your first choice.",
+          asideHeading: "A little geography helps.",
+          asideDescription: "We will favor your preferred area while leaving room for a venue that is clearly worth the drive.",
+          options: [
+            { value: "winter-park", title: "Winter Park + Maitland", description: "Historic neighborhoods, gardens, and polished estate character." },
+            { value: "orlando", title: "Orlando Proper", description: "Central access, city convenience, museums, and classic venues." },
+            { value: "north", title: "North + Northwest", description: "Lake Mary, Apopka, Mount Dora, Eustis, and nearby areas." },
+            { value: "east", title: "East + Coastal", description: "DeLand, Daytona, Port Orange, and the coastal side of the region." },
+            { value: "open", title: "I Will Go Anywhere", description: "I would rather follow the best fit than draw a tight map boundary." }
+          ]
+        },
+        {
+          id: "micro",
+          category: "Your Scale",
+          heading: "Is a micro wedding part of the plan?",
+          description: "This helps surface venues that offer intimate packages or feel especially right for a smaller guest list.",
+          asideHeading: "Small can still feel like a full celebration.",
+          asideDescription: "A micro-wedding fit can mean more intentional details, lower minimums, or simply a space that does not feel oversized.",
+          options: [
+            { value: "yes", title: "Yes, Definitely", description: "We are intentionally planning a small or micro celebration." },
+            { value: "no", title: "No, We Want More Room", description: "We do not need a venue optimized for an intimate event." },
+            { value: "open", title: "Still Deciding", description: "The overall venue fit matters more than a specific scale label." }
+          ]
+        },
+        {
+          id: "perks",
+          category: "Your Extras",
+          heading: "Which extras would make the venue feel especially right?",
+          description: "Select all that genuinely matter. This is the one question where you can choose more than one answer.",
+          asideHeading: "The details do the work.",
+          asideDescription: "These preferences will shape the order of the venues that have already cleared the hard budget and guest-count rules.",
+          multiple: true,
+          options: [
+            { value: "weather", title: "Weather Backup", description: "A strong indoor contingency matters to us." },
+            { value: "lodging", title: "Overnight Stay", description: "On-site rooms or accommodations would be useful." },
+            { value: "allInclusive", title: "All-Inclusive Support", description: "We would value built-in planning or catering support." },
+            { value: "vendors", title: "Vendor Flexibility", description: "We want freedom to bring in our own trusted team." },
+            { value: "photos", title: "Portrait Potential", description: "A photogenic setting and great natural light matter a lot." }
+          ]
+        },
+        {
+          id: "planning",
+          category: "Your Planning Style",
+          heading: "What kind of venue experience sounds most helpful?",
+          description: "This is a soft preference, not a rule. It helps distinguish a guided package from a more flexible blank slate.",
+          asideHeading: "Let the venue carry its share.",
+          asideDescription: "Some couples want an easy built-in path. Others want latitude to make each part of the day their own.",
+          options: [
+            { value: "allInclusive", title: "Guided + Supported", description: "Packages, catering, and venue support would make planning easier." },
+            { value: "diy", title: "Flexible + Personal", description: "We want room to choose our own vendors and build the day ourselves." },
+            { value: "open", title: "The Fit Matters Most", description: "I am open to either approach for the right place." }
+          ]
+        },
+        {
+          id: "priority",
+          category: "Your Priority",
+          heading: "When you picture the right venue, what matters most?",
+          description: "Choose the thing that would make you feel most confident after booking the tour.",
+          asideHeading: "Choose the thing you will remember.",
+          asideDescription: "Your final preference breaks ties between venues that fit the practical parts of your plan.",
+          options: [
+            { value: "photos", title: "A Beautiful Setting", description: "I want the space itself to do a lot of the visual storytelling." },
+            { value: "guestComfort", title: "Guest Comfort", description: "I want everyone to have room, good flow, and an easy experience." },
+            { value: "unique", title: "Something Distinctive", description: "We want a venue that feels surprising, memorable, or unlike the usual options." },
+            { value: "value", title: "The Best Value", description: "I want the most meaningful fit for what we are spending." }
+          ]
+        }
+      ];
+
+      const state = {
+        answers: {},
+        currentQuestion: 0,
+        email: ""
+      };
+
+      const views = document.querySelectorAll("[data-view]");
+      const questionRoot = document.getElementById("question-root");
+      const headerProgress = document.getElementById("header-progress");
+      const progressList = document.getElementById("progress-list");
+      const asideKicker = document.getElementById("aside-kicker");
+      const asideHeading = document.getElementById("aside-heading");
+      const asideDescription = document.getElementById("aside-description");
+
+      function showView(viewName) {
+        views.forEach((view) => {
+          view.classList.toggle("is-active", view.dataset.view === viewName);
+        });
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+
+      function isSelected(question, value) {
+        const answer = state.answers[question.id];
+        return question.multiple ? Array.isArray(answer) && answer.includes(value) : answer === value;
+      }
+
+      function isQuestionComplete(question) {
+        const answer = state.answers[question.id];
+        return question.multiple ? Array.isArray(answer) && answer.length > 0 : Boolean(answer);
+      }
+
+      function renderProgress() {
+        headerProgress.textContent = `Question ${state.currentQuestion + 1} of ${questions.length}`;
+        progressList.innerHTML = questions
+          .map((question, index) => {
+            const complete = index < state.currentQuestion || isQuestionComplete(question);
+            return `<span class="progress-step${complete ? " is-complete" : ""}" aria-hidden="true"></span>`;
+          })
+          .join("");
+      }
+
+      function renderQuestion() {
+        const question = questions[state.currentQuestion];
+        const isLast = state.currentQuestion === questions.length - 1;
+        const answerLabel = question.multiple ? "Select all that apply" : "Choose one answer";
+
+        asideKicker.textContent = question.category;
+        asideHeading.textContent = question.asideHeading;
+        asideDescription.textContent = question.asideDescription;
+        renderProgress();
+
+        questionRoot.innerHTML = `
+          <p class="question-count">${String(state.currentQuestion + 1).padStart(2, "0")} / ${String(questions.length).padStart(2, "0")} - ${question.category}</p>
+          <h1>${question.heading}</h1>
+          <p class="question-description">${question.description}</p>
+          ${question.hardFilter ? '<p class="filter-note">Must-have filter: results must satisfy this answer before they are ranked.</p>' : ""}
+          <div class="answer-grid" role="group" aria-label="${answerLabel}">
+            ${question.options
+              .map(
+                (option, index) => `
+                  <button
+                    class="answer-option${isSelected(question, option.value) ? " is-selected" : ""}"
+                    type="button"
+                    data-answer="${option.value}"
+                    aria-pressed="${isSelected(question, option.value)}"
+                  >
+                    <span class="answer-index">${String(index + 1).padStart(2, "0")}</span>
+                    <span class="answer-title">${option.title}</span>
+                    <span class="answer-description">${option.description}</span>
+                  </button>
+                `
+              )
+              .join("")}
+          </div>
+          <div class="question-actions">
+            <button class="button-text" type="button" data-action="previous" ${state.currentQuestion === 0 ? "hidden" : ""}>&larr; Previous Question</button>
+            <button class="button-primary" type="button" data-action="next" ${isQuestionComplete(question) ? "" : "disabled"}>
+              ${isLast ? "See My Result" : "Next Question"}
+            </button>
+          </div>
+        `;
+
+        questionRoot.querySelectorAll("[data-answer]").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectAnswer(question, button.dataset.answer);
+          });
+        });
+
+        const previousButton = questionRoot.querySelector('[data-action="previous"]');
+        if (previousButton) {
+          previousButton.addEventListener("click", previousQuestion);
+        }
+
+        questionRoot.querySelector('[data-action="next"]').addEventListener("click", nextQuestion);
+      }
+
+      function selectAnswer(question, value) {
+        if (question.multiple) {
+          const current = Array.isArray(state.answers[question.id]) ? state.answers[question.id] : [];
+          state.answers[question.id] = current.includes(value)
+            ? current.filter((item) => item !== value)
+            : [...current, value];
+        } else {
+          state.answers[question.id] = value;
+        }
+        renderQuestion();
+      }
+
+      function nextQuestion() {
+        const question = questions[state.currentQuestion];
+        if (!isQuestionComplete(question)) {
+          return;
+        }
+        if (state.currentQuestion === questions.length - 1) {
+          showView("email");
+          return;
+        }
+        state.currentQuestion += 1;
+        renderQuestion();
+      }
+
+      function previousQuestion() {
+        if (state.currentQuestion === 0) {
+          return;
+        }
+        state.currentQuestion -= 1;
+        renderQuestion();
+      }
+
+      function selectedGuestMinimum() {
+        const option = questions
+          .find((question) => question.id === "guestCount")
+          .options.find((item) => item.value === state.answers.guestCount);
+        return option ? option.minimumCapacity : 0;
+      }
+
+      async function fetchMatch(email, consent) {
+        const response = await fetch("/api/match", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            consent,
+            answers: { ...state.answers, guestMinimum: selectedGuestMinimum() }
+          })
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error((payload && payload.error) || "Something went wrong finding your match. Please try again.");
+        }
+        return payload;
+      }
+
+      function renderResults(result) {
+        const { topVenue, runnersUp, tags, disclaimer, resultMode } = result;
+        const resultHero = document.getElementById("results-hero");
+        const resultKicker = document.getElementById("result-kicker");
+        const resultTitle = document.getElementById("result-title");
+        const resultSummary = document.getElementById("result-summary");
+        const matchTags = document.getElementById("match-tags");
+        const disclaimerEl = document.getElementById("result-disclaimer");
+        const resultLink = document.getElementById("result-link");
+        const runnersKicker = document.getElementById("runners-kicker");
+        const runnersHeading = document.getElementById("runners-heading");
+        const runnerGrid = document.getElementById("runner-grid");
+
+        const heroImage = topVenue.heroImageUrl || fallbackImageFor(topVenue.id);
+        resultHero.style.setProperty("--result-image", `url("${heroImage}")`);
+        resultKicker.textContent = resultMode === "closest" ? "Your closest venue match" : "Your top venue match";
+        resultTitle.textContent = topVenue.name;
+        resultSummary.textContent = topVenue.summary;
+        matchTags.innerHTML = (tags || []).map((tag) => `<span class="match-tag">${tag}</span>`).join("");
+        resultLink.href = topVenue.url || "#";
+
+        if (disclaimer) {
+          disclaimerEl.hidden = false;
+          disclaimerEl.textContent = disclaimer;
+        } else {
+          disclaimerEl.hidden = true;
+        }
+
+        runnersKicker.textContent = runnersUp.length ? "Also worth a look" : "Your shortlist";
+        runnersHeading.textContent = runnersUp.length ? "Three more to see" : "Your venue match";
+
+        if (!runnersUp.length) {
+          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count or budget filter to explore a broader shortlist.</p>';
+        } else {
+          runnerGrid.innerHTML = runnersUp
+            .map(
+              (venue, index) => `
+                <article class="runner">
+                  <span class="runner-number">Runner-up ${index + 1}</span>
+                  <h3>${venue.name}</h3>
+                  <p>${venue.city ? `${venue.city}. ` : ""}${venue.note || ""}</p>
+                  <a href="${venue.url || "#"}" target="_blank" rel="noreferrer">Read the venue review</a>
+                </article>
+              `
+            )
+            .join("");
+        }
+
+        showView("results");
+      }
+
+      function startQuiz() {
+        showView("quiz");
+        renderQuestion();
+      }
+
+      function restartQuiz() {
+        state.answers = {};
+        state.currentQuestion = 0;
+        state.email = "";
+        const emailInput = document.getElementById("email");
+        const consentInput = document.getElementById("consent");
+        const error = document.getElementById("form-error");
+        emailInput.value = "";
+        consentInput.checked = false;
+        error.textContent = "";
+        startQuiz();
+      }
+
+      document.querySelectorAll('[data-action="start"]').forEach((button) => {
+        button.addEventListener("click", startQuiz);
+      });
+
+      document.querySelectorAll('[data-action="restart"]').forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          restartQuiz();
+        });
+      });
+
+      document.getElementById("email-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const emailInput = document.getElementById("email");
+        const consentInput = document.getElementById("consent");
+        const submitButton = event.target.querySelector('button[type="submit"]');
+        const error = document.getElementById("form-error");
+
+        if (!emailInput.validity.valid) {
+          error.textContent = "Please enter a valid email address to reveal your matches.";
+          emailInput.focus();
+          return;
+        }
+
+        if (!consentInput.checked) {
+          error.textContent = "Please confirm that you would like to receive Author Made planning emails.";
+          consentInput.focus();
+          return;
+        }
+
+        state.email = emailInput.value.trim();
+        error.textContent = "";
+        submitButton.disabled = true;
+        submitButton.textContent = "Finding Your Match...";
+
+        try {
+          const result = await fetchMatch(state.email, true);
+          renderResults(result);
+        } catch (submitError) {
+          error.textContent = submitError.message || "Something went wrong finding your match. Please try again.";
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Show My Matches";
+        }
+      });
+
+      // Lets the Squarespace host page auto-size the iframe instead of showing an internal scrollbar.
+      function reportHeightToParent() {
+        if (window.parent === window) {
+          return;
+        }
+        window.parent.postMessage(
+          { type: "quiz-resize", height: document.documentElement.scrollHeight },
+          "*"
+        );
+      }
+
+      window.addEventListener("load", reportHeightToParent);
+      window.addEventListener("resize", reportHeightToParent);
+      new ResizeObserver(reportHeightToParent).observe(document.body);
+    </script>
+  </body>
+</html>
