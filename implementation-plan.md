@@ -372,10 +372,14 @@ Recommended optional fields:
 4. The Vercel app posts its content height to the parent window on load and on every view change (intro → quiz → email → results), so the iframe never scrolls internally or shows dead space:
    ```js
    function reportHeight() {
-     window.parent.postMessage({ type: "quiz-resize", height: document.body.scrollHeight }, "*");
+     const height = document.getElementById("app").getBoundingClientRect().height;
+     window.parent.postMessage({ type: "quiz-resize", height: Math.ceil(height) }, "*");
    }
    ```
-   Call `reportHeight()` after every `showView()` call and on window resize.
+   Measure `#app`'s own bounding box, not `document.body.scrollHeight`/`documentElement.scrollHeight` -
+   those can't report smaller than the iframe's current height when content doesn't overflow, so the
+   iframe would grow but never shrink back down. `embed-app.html` already implements this via a
+   `ResizeObserver` on `document.body`, so no per-view call is needed.
 5. Add `X-Frame-Options`/`Content-Security-Policy: frame-ancestors https://www.authormadephoto.com` on the Vercel app (not "deny") so it is explicitly embeddable only by your Squarespace domain.
 
 ### Why This Approach
