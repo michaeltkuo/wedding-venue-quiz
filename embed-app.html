@@ -28,7 +28,7 @@
       }
 
       html {
-        background: var(--ink);
+        background: var(--cream);
       }
 
       body {
@@ -79,8 +79,8 @@
         justify-content: flex-end;
         margin: 0 auto;
         max-width: 1440px;
-        min-height: 640px;
-        padding: 86px 42px 76px;
+        min-height: 420px;
+        padding: 64px 42px 56px;
       }
 
       .kicker {
@@ -175,146 +175,37 @@
         color: var(--rust);
       }
 
-      .intro-details {
-        background: var(--cream-strong);
-        border-top: 1px solid var(--line-dark);
-        display: grid;
-        grid-template-columns: 1.1fr 1fr 1fr;
-      }
-
-      .intro-detail {
-        border-right: 1px solid var(--line-dark);
-        min-height: 142px;
-        padding: 28px 34px;
-      }
-
-      .intro-detail:last-child {
-        border-right: 0;
-      }
-
-      .intro-detail strong {
-        display: block;
-        font-family: var(--serif);
-        font-size: 25px;
-        font-weight: 400;
-        line-height: 1;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-      }
-
-      .intro-detail span {
-        color: #5d554e;
-        display: block;
-        font-size: 13px;
-        line-height: 1.55;
-        max-width: 330px;
-      }
-
       .quiz-view,
       .email-view {
         background: var(--cream);
       }
 
-      .quiz-status-bar {
+      .quiz-meta-row {
         align-items: center;
-        background: var(--cream-strong);
-        border-bottom: 1px solid var(--line-dark);
         display: flex;
         gap: 12px;
         justify-content: space-between;
-        padding: 16px 42px;
+        margin: 0 0 22px;
       }
 
-      .quiz-status-bar .button-text {
-        color: #5d554e;
-      }
-
-      .quiz-status-bar .button-text:hover {
-        color: var(--rust-deep);
-      }
-
-      .quiz-status-label {
-        color: #5d554e;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-      }
-
-      .quiz-grid,
-      .email-grid {
-        display: grid;
-        grid-template-columns: minmax(280px, 36%) 1fr;
-      }
-
-      .quiz-aside,
-      .email-aside {
-        background-color: #4a3a2a;
-        background-image:
-          linear-gradient(180deg, rgba(20, 18, 16, 0.38), rgba(20, 18, 16, 0.7)),
-          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/f5b863bd-1dc8-474e-b408-58bd98ff2ad7/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w");
-        background-position: center;
-        background-size: cover;
-        color: #fff;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 42px;
-      }
-
-      .email-aside {
-        background-image:
-          linear-gradient(180deg, rgba(20, 18, 16, 0.28), rgba(20, 18, 16, 0.76)),
-          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/e589994d-cf0a-40cf-8e2e-6b04f1a5e424/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+Maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w");
-      }
-
-      .aside-copy h2,
-      .email-aside h2 {
-        font-family: var(--serif);
-        font-size: 46px;
-        font-weight: 400;
-        line-height: 0.94;
+      .quiz-meta-row .question-count {
         margin: 0;
-        text-transform: uppercase;
       }
 
-      .aside-copy p,
-      .email-aside p {
-        font-size: 14px;
-        line-height: 1.6;
-        margin: 18px 0 0;
-        max-width: 310px;
+      .quiz-meta-row .button-text {
+        color: #5d554e;
+        white-space: nowrap;
       }
 
-      .progress-list {
-        display: grid;
-        gap: 7px;
-        margin-top: 30px;
-      }
-
-      .progress-step {
-        background: rgba(255, 255, 255, 0.32);
-        height: 3px;
-      }
-
-      .progress-step.is-complete {
-        background: #fff;
-      }
-
-      .aside-footnote {
-        border-top: 1px solid var(--line-light);
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1.45;
-        margin-top: 40px;
-        padding-top: 18px;
-        text-transform: uppercase;
+      .quiz-meta-row .button-text:hover {
+        color: var(--rust-deep);
       }
 
       .question-panel,
       .email-panel {
         align-items: center;
         display: flex;
-        padding: 60px 8vw;
+        padding: 48px 6vw;
       }
 
       .question-wrap,
@@ -524,8 +415,8 @@
         background-size: cover;
         color: #fff;
         display: flex;
-        min-height: 640px;
-        padding: 66px 42px;
+        min-height: 420px;
+        padding: 48px 42px;
       }
 
       .results-hero-content {
@@ -668,39 +559,20 @@
       }
 
       @media (max-width: 980px) {
-        .quiz-grid,
-        .email-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .quiz-aside,
-        .email-aside {
-          min-height: 310px;
-        }
-
-        .quiz-aside .progress-list,
-        .aside-footnote {
-          display: none;
-        }
-
         .question-panel,
         .email-panel {
-          padding: 48px 42px 60px;
+          padding: 40px 24px 48px;
         }
       }
 
       @media (max-width: 700px) {
-        .quiz-status-bar {
-          padding: 12px 20px;
-        }
-
         .intro-hero {
           background-position: 62% center;
         }
 
         .intro-content {
-          min-height: 520px;
-          padding: 48px 20px 44px;
+          min-height: 360px;
+          padding: 40px 20px 36px;
         }
 
         .intro-content h1,
@@ -714,35 +586,9 @@
           margin: 22px 0 24px;
         }
 
-        .intro-details {
-          grid-template-columns: 1fr;
-        }
-
-        .intro-detail {
-          border-bottom: 1px solid var(--line-dark);
-          border-right: 0;
-          min-height: 0;
-          padding: 24px 20px;
-        }
-
-        .intro-detail:last-child {
-          border-bottom: 0;
-        }
-
-        .quiz-aside,
-        .email-aside {
-          min-height: 245px;
-          padding: 28px 20px;
-        }
-
-        .aside-copy h2,
-        .email-aside h2 {
-          font-size: 35px;
-        }
-
         .question-panel,
         .email-panel {
-          padding: 38px 20px 48px;
+          padding: 32px 20px 40px;
         }
 
         .question-wrap h1,
@@ -781,8 +627,8 @@
 
         .results-hero {
           background-position: 60% center;
-          min-height: 520px;
-          padding: 44px 20px;
+          min-height: 360px;
+          padding: 36px 20px;
         }
 
         .result-intro {
@@ -832,78 +678,35 @@
             <button class="button-primary" type="button" data-action="start">Find My Venue Match</button>
           </div>
         </div>
-
-        <div class="intro-details" aria-label="Quiz highlights">
-          <div class="intro-detail">
-            <strong>10 Questions</strong>
-            <span>A short, focused planning check-in built around the decisions that change your venue shortlist.</span>
-          </div>
-          <div class="intro-detail">
-            <strong>One Best Fit</strong>
-            <span>Budget and guest count shape the match before style, setting, and extras refine the results.</span>
-          </div>
-          <div class="intro-detail">
-            <strong>Three More To See</strong>
-            <span>Because finding a venue should give you a confident place to start, not a single take-it-or-leave-it answer.</span>
-          </div>
-        </div>
       </section>
 
       <section class="view quiz-view" data-view="quiz" aria-live="polite">
-        <div class="quiz-status-bar">
-          <button type="button" class="button-text" data-action="restart">Start Over</button>
-          <span class="quiz-status-label" id="header-progress">Question 1 of 10</span>
-        </div>
-        <div class="quiz-grid">
-          <aside class="quiz-aside">
-            <div class="aside-copy">
-              <p class="kicker" id="aside-kicker">Your venue direction</p>
-              <h2 id="aside-heading">A few details make a big difference.</h2>
-              <p id="aside-description">We will use your answers to build a focused shortlist from the Author Made venue database.</p>
-            </div>
-            <div>
-              <div class="progress-list" id="progress-list" aria-label="Quiz progress"></div>
-              <p class="aside-footnote">Budget and guest count are used as must-have filters.</p>
-            </div>
-          </aside>
-          <section class="question-panel">
-            <div class="question-wrap" id="question-root"></div>
-          </section>
-        </div>
+        <section class="question-panel">
+          <div class="question-wrap" id="question-root"></div>
+        </section>
       </section>
 
       <section class="view email-view" data-view="email">
-        <div class="quiz-status-bar">
-          <button type="button" class="button-text" data-action="restart">Start Over</button>
-          <span class="quiz-status-label">Your matches are ready</span>
-        </div>
-        <div class="email-grid">
-          <aside class="email-aside">
-            <div>
-              <p class="kicker">One last detail</p>
-              <h2>Save your venue shortlist.</h2>
-              <p>Enter your email to see the match we found for your wedding day and get venue-focused planning ideas from Author Made.</p>
-            </div>
-            <p class="aside-footnote">Your quiz answers are used to personalize this shortlist.</p>
-          </aside>
-          <section class="email-panel">
-            <div class="email-wrap">
+        <section class="email-panel">
+          <div class="email-wrap">
+            <div class="quiz-meta-row">
               <p class="question-count">Your results are ready</p>
-              <h1>Where should we send your venue match?</h1>
-              <p>Your result will appear right here after you submit. In the live build, this step will also add you to the Author Made venue email list.</p>
-              <form class="email-form" id="email-form" novalidate>
-                <label class="field-label" for="email">Email Address</label>
-                <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-                <label class="consent-label" for="consent">
-                  <input id="consent" name="consent" type="checkbox" required />
-                  <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
-                </label>
-                <p class="form-error" id="form-error" role="alert"></p>
-                <button class="button-primary" type="submit">Show My Matches</button>
-              </form>
+              <button type="button" class="button-text" data-action="restart">Start Over</button>
             </div>
-          </section>
-        </div>
+            <h1>Where should we send your venue match?</h1>
+            <p>Your result will appear right here after you submit. In the live build, this step will also add you to the Author Made venue email list.</p>
+            <form class="email-form" id="email-form" novalidate>
+              <label class="field-label" for="email">Email Address</label>
+              <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+              <label class="consent-label" for="consent">
+                <input id="consent" name="consent" type="checkbox" required />
+                <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
+              </label>
+              <p class="form-error" id="form-error" role="alert"></p>
+              <button class="button-primary" type="submit">Show My Matches</button>
+            </form>
+          </div>
+        </section>
       </section>
 
       <section class="view results-view" data-view="results" aria-live="polite">
@@ -1101,11 +904,6 @@
 
       const views = document.querySelectorAll("[data-view]");
       const questionRoot = document.getElementById("question-root");
-      const headerProgress = document.getElementById("header-progress");
-      const progressList = document.getElementById("progress-list");
-      const asideKicker = document.getElementById("aside-kicker");
-      const asideHeading = document.getElementById("aside-heading");
-      const asideDescription = document.getElementById("aside-description");
 
       function showView(viewName) {
         views.forEach((view) => {
@@ -1124,28 +922,16 @@
         return question.multiple ? Array.isArray(answer) && answer.length > 0 : Boolean(answer);
       }
 
-      function renderProgress() {
-        headerProgress.textContent = `Question ${state.currentQuestion + 1} of ${questions.length}`;
-        progressList.innerHTML = questions
-          .map((question, index) => {
-            const complete = index < state.currentQuestion || isQuestionComplete(question);
-            return `<span class="progress-step${complete ? " is-complete" : ""}" aria-hidden="true"></span>`;
-          })
-          .join("");
-      }
-
       function renderQuestion() {
         const question = questions[state.currentQuestion];
         const isLast = state.currentQuestion === questions.length - 1;
         const answerLabel = question.multiple ? "Select all that apply" : "Choose one answer";
 
-        asideKicker.textContent = question.category;
-        asideHeading.textContent = question.asideHeading;
-        asideDescription.textContent = question.asideDescription;
-        renderProgress();
-
         questionRoot.innerHTML = `
-          <p class="question-count">${String(state.currentQuestion + 1).padStart(2, "0")} / ${String(questions.length).padStart(2, "0")} - ${question.category}</p>
+          <div class="quiz-meta-row">
+            <p class="question-count">${String(state.currentQuestion + 1).padStart(2, "0")} / ${String(questions.length).padStart(2, "0")} - ${question.category}</p>
+            <button type="button" class="button-text" data-action="restart">Start Over</button>
+          </div>
           <h1>${question.heading}</h1>
           <p class="question-description">${question.description}</p>
           ${question.hardFilter ? '<p class="filter-note">Must-have filter: results must satisfy this answer before they are ranked.</p>' : ""}
@@ -1187,6 +973,11 @@
         }
 
         questionRoot.querySelector('[data-action="next"]').addEventListener("click", nextQuestion);
+
+        questionRoot.querySelector('[data-action="restart"]').addEventListener("click", (event) => {
+          event.preventDefault();
+          restartQuiz();
+        });
       }
 
       function selectAnswer(question, value) {
@@ -1230,6 +1021,28 @@
       }
 
       async function fetchMatch(email, consent) {
+        // Local, no-backend preview: open embed-app.html?mock=1 (add &start=1 to skip the intro too).
+        if (new URLSearchParams(window.location.search).get("mock") === "1") {
+          return {
+            resultMode: "exact",
+            topVenue: {
+              id: "leu-gardens",
+              name: "Leu Gardens",
+              heroImageUrl: null,
+              url: "https://www.authormadephoto.com/blog/wedding-venue-review-leu-gardens-orlando",
+              summary: "Leu Gardens rose to the top because it pairs the garden-forward setting you selected and an outdoor-focused experience. Nearly 50 acres of gardens, secluded paths, and an indoor reception option.",
+              score: 78
+            },
+            runnersUp: [
+              { id: "capen-house", name: "Capen House", city: "Winter Park", note: "A historic Victorian home with a lakefront backyard, brick patio, and garden character.", url: "https://www.authormadephoto.com/blog/best-affordable-luxury-wedding-venues-orlando", score: 61 },
+              { id: "casa-feliz", name: "Casa Feliz", city: "Winter Park", note: "Spanish-inspired architecture, arches, courtyard views, lush grounds, and warm historic interiors.", url: "https://www.authormadephoto.com/blog/wedding-venue-review-casa-feliz-winter-park", score: 58 },
+              { id: "villa-festa", name: "Villa Festa", city: "DeLand", note: "Italian Renaissance Revival architecture, bright interiors, a shaded ceremony setting, and overnight accommodations.", url: "https://www.authormadephoto.com/blog/wedding-venue-review-villa-festa-deland-fl", score: 52 }
+            ],
+            tags: ["garden-forward setting", "weather backup"],
+            disclaimer: null
+          };
+        }
+
         const response = await fetch("/api/match", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1327,6 +1140,11 @@
         });
       });
 
+      // Lets a scroll-triggered popup link (e.g. "/venue-quiz?start=1") skip straight to question 1.
+      if (new URLSearchParams(window.location.search).get("start") === "1") {
+        startQuiz();
+      }
+
       document.getElementById("email-form").addEventListener("submit", async (event) => {
         event.preventDefault();
         const emailInput = document.getElementById("email");
@@ -1363,14 +1181,14 @@
       });
 
       // Lets the Squarespace host page auto-size the iframe instead of showing an internal scrollbar.
+      // Measures #app's own box, not document.documentElement.scrollHeight: scrollHeight can't report
+      // smaller than the iframe's current height when content doesn't overflow, so it never shrinks.
       function reportHeightToParent() {
         if (window.parent === window) {
           return;
         }
-        window.parent.postMessage(
-          { type: "quiz-resize", height: document.documentElement.scrollHeight },
-          "*"
-        );
+        const height = document.getElementById("app").getBoundingClientRect().height;
+        window.parent.postMessage({ type: "quiz-resize", height: Math.ceil(height) }, "*");
       }
 
       window.addEventListener("load", reportHeightToParent);
