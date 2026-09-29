@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getSupabaseClient } from "./lib/supabaseClient";
+import { getVenues } from "./lib/venueSource";
 import { buildDisplayTags, buildSummary, deriveKitTagKeys, rankVenues } from "./lib/ranking";
 import { tagSubscriberWithNames, upsertSubscriber } from "./lib/kit";
 import { KIT_TAG_NAMES } from "./lib/tags";
-import type { MatchRequestBody, VenueRow } from "./lib/types";
+import type { MatchRequestBody } from "./lib/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,18 +25,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Marketing consent is required before results can be shown." });
   }
 
-  const supabase = getSupabaseClient();
-  const { data: venues, error: venuesError } = await supabase
-    .from("venues")
-    .select("*")
-    .eq("launch_eligible", true);
-
-  if (venuesError) {
-    console.error("Failed to load venues", venuesError);
+  let venues;
+  try {
+    ({ venues } = await getVenues());
+  } catch (error) {
+    console.error("Failed to load venues", error);
     return res.status(500).json({ error: "Could not load venue data." });
   }
 
-  const result = rankVenues((venues ?? []) as VenueRow[], answers);
+  const result = rankVenues(venues.filter((venue) => venue.launch_eligible), answers);
   const [topVenue, ...runnerVenues] = result.venues;
 
   if (!topVenue) {
@@ -62,23 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     await tagSubscriberWithNames(email, kitTagNames);
   } catch (error) {
-    // Never block the visitor's result on a Kit outage; the submission row below preserves the data for a retry.
+    // Never block the visitor's result on a Kit outage.
     console.error("Kit sync failed", error);
-  }
-
-  const { error: submissionError } = await supabase.from("quiz_submissions").insert({
-    email,
-    consent,
-    answers_json: answers,
-    matched_venue_ids: result.venues.map((venue) => venue.id),
-    top_venue_id: topVenue.id,
-    kit_tags_json: kitTagNames,
-    hard_filter_status: result.mode,
-    result_mode: result.mode,
-  });
-
-  if (submissionError) {
-    console.error("Failed to log quiz submission", submissionError);
   }
 
   const disclaimer =

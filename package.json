@@ -2,14 +2,13 @@
   "name": "wedding-venue-quiz",
   "private": true,
   "version": "0.1.0",
-  "description": "Orlando wedding venue matching quiz: static frontend + Vercel serverless API + Supabase + Kit.",
+  "description": "Orlando wedding venue matching quiz: static frontend + Vercel serverless API + Kit.",
   "scripts": {
     "dev": "vercel dev",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
-    "csv-parse": "^5.5.6"
+    "csv-parse": "^7.0.2"
   },
   "devDependencies": {
     "@vercel/node": "^3.2.0",

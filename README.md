@@ -2,7 +2,7 @@
 
 An embeddable Orlando wedding venue matching quiz for [Author Made Photo + Video](https://www.authormadephoto.com).
 
-The approved quiz experience runs as a static HTML frontend inside a Squarespace Code Block iframe. Secure matching, venue storage, email capture, and Kit tagging run through Vercel serverless functions and Supabase.
+The approved quiz experience runs as a static HTML frontend inside a Squarespace Code Block iframe. Matching, email capture, and Kit tagging run through Vercel serverless functions. There is no database - venue data is fetched and ranked directly from a published Google Sheet CSV on each request.
 
 ## Architecture
 
@@ -11,10 +11,9 @@ Squarespace /venue-quiz page
   -> Code Block
     -> iframe: Vercel deployment /embed-app.html
       -> POST /api/match
-        -> Supabase venues table
+        -> published Google Sheet CSV (fetched + cached in memory, ~5 min TTL)
         -> deterministic ranking engine
         -> Kit subscriber + tag sync
-        -> Supabase quiz_submissions table
 ```
 
 ### Key files
@@ -22,13 +21,13 @@ Squarespace /venue-quiz page
 - `embed-app.html` — deployable quiz frontend. It contains the approved visual design and question flow, but no private credentials or venue-ranking logic.
 - `squarespace-embed-preview.html` — local design-review harness that simulates the Squarespace page, host header/footer, iframe, responsive mobile frame, and embed inspector. Do not use this as the production embed.
 - `localhost-prototype.html` — original standalone prototype kept as a visual/reference comparison.
-- `api/match.ts` — Vercel endpoint for validation, ranking, Kit sync, and submission logging.
-- `api/import-venues.ts` — protected Vercel endpoint for importing the published Google Sheet CSV.
+- `api/match.ts` — Vercel endpoint for validation, ranking, and Kit sync.
+- `api/lib/venueSource.ts` — fetches and caches the published Google Sheet CSV in memory.
 - `api/lib/normalize.ts` — converts messy spreadsheet values into controlled fields.
+- `api/lib/importVenues.ts` — parses the CSV into normalized venue records.
 - `api/lib/ranking.ts` — hard filters, weighted scoring, result explanations, and Kit tag derivation.
 - `api/lib/kit.ts` — Kit API v4 client.
 - `api/lib/tags.ts` — internal tag keys and Kit tag names.
-- `supabase/schema.sql` — database schema to run in Supabase SQL Editor.
 - `implementation-plan.md` — detailed product, deployment, and rollout plan.
 - `question-to-field-mapping.md` — mapping between quiz questions and source-sheet columns.
 
@@ -37,7 +36,6 @@ Squarespace /venue-quiz page
 - Node.js 20 or newer recommended
 - npm
 - GitHub repository access
-- Supabase account
 - Kit account with API access enabled
 - Vercel account
 - Squarespace Business plan or higher for the Code Block embed
@@ -76,30 +74,11 @@ Squarespace /venue-quiz page
 
 | Variable | Purpose |
 | --- | --- |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only Supabase service-role key; never expose it to the browser |
 | `KIT_API_KEY` | Kit API v4 key; server-only |
 | `VENUE_SHEET_CSV_URL` | Published CSV URL for the Google Sheet venue tab |
-| `IMPORT_ADMIN_SECRET` | Secret required by the venue import endpoint |
 | `VERCEL_APP_PASSWORD` | Optional Vercel deployment protection password |
 
 `.env` is ignored by Git. Never paste secret values into source files, Squarespace Code Blocks, browser JavaScript, or chat.
-
-## Supabase setup
-
-1. Create a Supabase project.
-2. Open **SQL Editor**.
-3. Run the complete contents of `supabase/schema.sql`.
-4. Open **Project Settings -> API**.
-5. Copy the project URL and service-role key into local `.env` and Vercel environment variables.
-
-The service-role key is used only by the serverless functions. The browser never connects directly to Supabase.
-
-### Tables
-
-- `venues` — normalized venue records and launch eligibility.
-- `quiz_submissions` — consented quiz submissions and matched venue IDs.
-- `tag_mappings` — optional future data-driven mapping from source-sheet values to Kit tags.
 
 ## Venue data workflow
 
@@ -115,20 +94,11 @@ To publish it:
 4. Select the venue tab and CSV format.
 5. Put the published URL in `VENUE_SHEET_CSV_URL`.
 
-To import or refresh venue data after editing the sheet:
+Edits to the sheet go live automatically - `api/lib/venueSource.ts` fetches the CSV fresh and caches
+it in memory for about 5 minutes per warm serverless instance. There is no manual import step or
+admin endpoint to trigger; just edit the sheet and wait a few minutes.
 
-```bash
-curl -X POST https://YOUR-VERCEL-APP.vercel.app/api/import-venues \
-  -H "x-import-secret: YOUR-IMPORT-ADMIN-SECRET"
-```
-
-The response includes:
-
-- number of rows imported
-- number of launch-eligible venues
-- plain-English warnings for venues excluded from matching
-
-A venue is excluded from matching when budget or capacity is blank, `TBD`, `Not established`, or otherwise lacks a usable value. Excluded rows remain in Supabase so they can be corrected later.
+A venue is excluded from matching when budget or capacity is blank, `TBD`, `Not established`, or otherwise lacks a usable value. Excluded rows stay in the sheet (and are still visible in `warnings` if you inspect a raw fetch) so they can be corrected later.
 
 ## Matching behavior
 
@@ -175,9 +145,8 @@ The integration:
 1. Upserts the subscriber by email address.
 2. Creates or reuses each tag by name.
 3. Tags the subscriber by email address.
-4. Logs the submission and result in Supabase.
 
-A temporary Kit outage does not prevent the visitor from seeing a valid venue result; the API logs the failure server-side and still returns the match.
+A temporary Kit outage does not prevent the visitor from seeing a valid venue result; the API logs the failure server-side and still returns the match. There is no separate submission log - Kit is the only place subscriber/tag data lives.
 
 ## Vercel deployment
 
@@ -185,9 +154,8 @@ A temporary Kit outage does not prevent the visitor from seeing a valid venue re
 2. In Vercel, choose **Add New -> Project**.
 3. Import `michaeltkuo/wedding-venue-quiz`.
 4. Use the **Other** framework preset.
-5. Add all environment variables from `.env.example`.
+5. Add both environment variables from `.env.example` (`KIT_API_KEY`, `VENUE_SHEET_CSV_URL`).
 6. Deploy and copy the resulting `*.vercel.app` URL.
-7. Run the first venue import against the deployed URL.
 
 No build command is required. Vercel serves the static frontend and detects the TypeScript files in `api/` as serverless functions.
 
@@ -231,9 +199,7 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 - `npm run typecheck` passes.
 - `.env` is not tracked by Git.
-- `supabase/schema.sql` has been run successfully.
-- The Google Sheet import reports the expected eligible-venue count.
-- Incomplete rows appear in the import warnings.
+- Opening the published Google Sheet CSV URL directly in a browser returns raw CSV text.
 - `/api/match` rejects invalid email and missing consent.
 - Budget and guest capacity behave as hard filters.
 - The closest-match state appears when no eligible venues pass both filters.
@@ -243,7 +209,6 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 - Open the Vercel URL directly and complete the quiz.
 - Submit a test email and confirm the result appears.
 - Confirm the subscriber and tags appear in Kit.
-- Confirm the submission row appears in Supabase.
 - Embed the Vercel URL in a Squarespace preview page.
 - Check desktop and mobile layouts.
 - Confirm there is no internal iframe scrollbar or large dead space.
@@ -253,13 +218,11 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 ### `Could not load venue data`
 
-Check that the Supabase schema has been run, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set in the current environment, and the `venues` table contains imported rows.
+Check that `VENUE_SHEET_CSV_URL` is set in the current environment and that the URL returns raw CSV
+when opened directly (not an HTML login/permissions page). Google Sheets "Publish to web" links can
+stop working if the sheet's sharing settings change.
 
-### Import returns `401`
-
-The `x-import-secret` header must exactly match `IMPORT_ADMIN_SECRET` in the deployed Vercel environment.
-
-### Import returns zero rows
+### The sheet fetch returns zero rows
 
 Confirm the Google Sheet is published as CSV, the published URL points to the correct tab, and the first row contains the expected source column headers.
 
@@ -277,9 +240,9 @@ Confirm the Code Block's `message` listener uses the same `quiz-resize` event ty
 
 ## Security notes
 
-- Keep Supabase service-role and Kit API keys server-side.
+- Keep the Kit API key server-side.
 - Keep `.env` ignored and never commit it.
 - Restrict `frame-ancestors` to the production Squarespace domain.
 - Validate email and consent in the serverless endpoint even though the browser also validates them.
-- Keep the import endpoint protected by `IMPORT_ADMIN_SECRET`.
-- Do not expose Supabase service-role credentials in a Google Sheet, Squarespace Code Block, or frontend source.
+- The published Google Sheet CSV is world-readable by link design (Google's "Publish to web" has no
+  access control) - don't put anything sensitive in it beyond venue marketing details.
