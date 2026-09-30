@@ -46,21 +46,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const kitTagNames = deriveKitTagKeys(topVenue)
-    .map((key) => KIT_TAG_NAMES[key])
-    .filter((name): name is string => Boolean(name));
+  // Kit is opt-in: with no KIT_API_KEY configured the quiz runs end to end without it, which is the
+  // current test-phase setup. Setting the key is all that is needed to turn the sync back on.
+  let kitSync: "ok" | "failed" | "skipped" = "skipped";
 
-  try {
-    await upsertSubscriber(email, {
-      quiz_top_venue: topVenue.name,
-      quiz_result_mode: result.mode,
-      quiz_budget_bucket: answers.budget ?? "",
-      quiz_guest_range: answers.guestCount ?? "",
-    });
-    await tagSubscriberWithNames(email, kitTagNames);
-  } catch (error) {
-    // Never block the visitor's result on a Kit outage.
-    console.error("Kit sync failed", error);
+  if (process.env.KIT_API_KEY) {
+    const kitTagNames = deriveKitTagKeys(topVenue)
+      .map((key) => KIT_TAG_NAMES[key])
+      .filter((name): name is string => Boolean(name));
+
+    try {
+      await upsertSubscriber(email, {
+        quiz_top_venue: topVenue.name,
+        quiz_result_mode: result.mode,
+        quiz_budget_bucket: answers.budget ?? "",
+        quiz_guest_range: answers.guestCount ?? "",
+      });
+      await tagSubscriberWithNames(email, kitTagNames);
+      kitSync = "ok";
+    } catch (error) {
+      // Never block the visitor's result on a Kit outage.
+      console.error("Kit sync failed", error);
+      kitSync = "failed";
+    }
+  } else {
+    // No subscriber store is configured, so the submitted email is used for nothing and not retained.
+    console.info("Kit sync skipped: KIT_API_KEY is not set");
   }
 
   const disclaimer =
@@ -90,5 +101,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })),
     tags: buildDisplayTags(topVenue, answers),
     disclaimer,
+    kitSync,
   });
 }

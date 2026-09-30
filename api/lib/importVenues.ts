@@ -25,7 +25,18 @@ export interface ImportResult {
 
 type CsvRow = Record<string, string>;
 
-// Column names must match the header row of "Author_Made_Venue_Quiz_Database_V2.xlsx - Venue Database.csv"
+// The 09.10.2026 sheet dropped the standalone `Garden / Botanical`, `Historic`, and
+// `European / Old-World` columns; those traits now live inside the free-text style vocabulary
+// ("Garden Romance", "Old-World Character", ...). Derive them from that text rather than from
+// columns that no longer exist.
+function styleText(row: CsvRow): string {
+  return [row["Primary Style / Vibe"], row["Photography / Visual Notes"], row["Appears In / Source Type"]]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+// Column names must match the header row of "data/venues.csv"
 // (and the published Google Sheet, which should mirror the same columns).
 export function parseVenueCsv(csvText: string): ImportResult {
   const rows = parse(csvText, { columns: true, skip_empty_lines: true, trim: true }) as CsvRow[];
@@ -39,11 +50,11 @@ export function parseVenueCsv(csvText: string): ImportResult {
       continue;
     }
 
-    const budget = normalizeBudget(row["Price / Budget Fit"]);
+    const budget = normalizeBudget(row["Under $2k?"], row["Under $5k?"]);
     const capacity = normalizeCapacity(row["Max. Guest Capacity"]);
     const launchEligible = budget.eligible && capacity.eligible;
     const reasons: string[] = [];
-    if (!budget.eligible) reasons.push("Price / Budget Fit is blank, TBD, or not established");
+    if (!budget.eligible) reasons.push("Under $2k? and Under $5k? are both blank or hedged");
     if (!capacity.eligible) reasons.push("Max. Guest Capacity is blank, TBD, or has no usable upper bound");
 
     if (!launchEligible) {
@@ -55,16 +66,16 @@ export function parseVenueCsv(csvText: string): ImportResult {
       name,
       city_area: row["City / Area"]?.trim() || null,
       region: deriveRegion(row["City / Area"]),
-      budget_label: row["Price / Budget Fit"]?.trim() || null,
+      budget_label: budget.label,
       budget_buckets: budget.buckets,
       capacity_max: capacity.max,
       indoor_support: normalizeTriState(row["Indoor"]),
       outdoor_support: normalizeTriState(row["Outdoor"]),
       primary_vibe: row["Primary Style / Vibe"]?.trim() || null,
       micro_wedding_fit: normalizeBoolean(row["Micro-Wedding Fit"]),
-      garden_flag: normalizeBoolean(row["Garden / Botanical"]),
-      historic_flag: normalizeBoolean(row["Historic"]),
-      european_flag: normalizeBoolean(row["European / Old-World"]),
+      garden_flag: /garden|botanical/.test(styleText(row)),
+      historic_flag: /historic/.test(styleText(row)),
+      european_flag: /old-world|old world|european/.test(styleText(row)),
       source_type_tags: splitList(row["Appears In / Source Type"]),
       source_url: row["Primary Source URL"]?.trim() || null,
       starting_price_numeric: normalizeNumeric(row["Starting Price (numeric)"]),

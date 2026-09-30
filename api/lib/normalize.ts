@@ -35,20 +35,47 @@ export function slugify(name: string): string {
 
 export interface BudgetResult {
   buckets: string[];
+  label: string | null;
   eligible: boolean;
 }
 
-export function normalizeBudget(rawLabel: string | null | undefined): BudgetResult {
-  const label = (rawLabel ?? "").trim().toLowerCase();
-  if (!label || label.includes("tbd") || label.includes("not established")) {
-    return { buckets: [], eligible: false };
-  }
+// The sheet's two budget columns hold more than Yes/No. Per implementation-plan.md's Q3 rules,
+// hedged values ("Unclear; likely yes", "N/A; assume no") and qualified ones ("Yes (ceremony only)")
+// are NOT evidence that a realistic package exists at that tier, so they resolve to "unknown" and
+// keep the venue out of that budget bucket instead of being guessed into a Yes.
+export type BudgetFlag = "yes" | "no" | "unknown";
+
+export function normalizeBudgetFlag(raw: string | null | undefined): BudgetFlag {
+  const text = (raw ?? "").trim().toLowerCase();
+  if (!text) return "unknown";
+  if (/unclear|unknown|assume|likely|tbd|n\/a|varies/.test(text)) return "unknown";
+  // A parenthetical qualifier ("Yes (ceremony only)") scopes the price to one event format.
+  if (text.startsWith("yes") && text.includes("(")) return "unknown";
+  if (text.startsWith("yes")) return "yes";
+  if (text.startsWith("no")) return "no";
+  return "unknown";
+}
+
+export function normalizeBudget(rawUnder2k: string | null | undefined, rawUnder5k: string | null | undefined): BudgetResult {
+  const under2k = normalizeBudgetFlag(rawUnder2k);
+  const under5k = normalizeBudgetFlag(rawUnder5k);
+
   const buckets: string[] = [];
-  if (label.includes("under $2k") || label.includes("under $2,000")) buckets.push("under-2k");
-  if (label.includes("under $5k") || label.includes("under $5,000")) buckets.push("under-5k");
-  // A stated label with no recognized bucket (e.g. "Over $5k", "Custom quote") is still eligible
-  // for the "flexible" budget answer, just not for the under-2k/under-5k hard filters.
-  return { buckets, eligible: true };
+  if (under2k === "yes") buckets.push("under-2k");
+  // Under $2k necessarily also clears the under-$5k tier.
+  if (under5k === "yes" || under2k === "yes") buckets.push("under-5k");
+
+  const label =
+    buckets.includes("under-2k") ? "Under $2k"
+    : buckets.includes("under-5k") ? "Under $5k"
+    : under2k === "no" && under5k === "no" ? "Over $5k"
+    : null;
+
+  // Eligible means "we know something usable about this venue's price tier". Both flags unknown
+  // (blank or hedged) leaves the venue out of matching until the sheet is corrected.
+  const eligible = under2k !== "unknown" || under5k !== "unknown";
+
+  return { buckets, label, eligible };
 }
 
 export interface CapacityResult {

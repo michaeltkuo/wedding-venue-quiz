@@ -2,7 +2,9 @@
 
 An embeddable Orlando wedding venue matching quiz for [Author Made Photo + Video](https://www.authormadephoto.com).
 
-The approved quiz experience runs as a static HTML frontend inside a Squarespace Code Block iframe. Matching, email capture, and Kit tagging run through Vercel serverless functions. There is no database - venue data is fetched and ranked directly from a published Google Sheet CSV on each request.
+The approved quiz experience runs as a static HTML frontend inside a Squarespace Code Block iframe. Matching, email capture, and Kit tagging run through Vercel serverless functions. There is no database - venue data is parsed and ranked directly from a CSV on each request.
+
+> **Current phase: no external dependencies.** Venue data is read from the committed `data/venues.csv`, and the Kit sync is off unless `KIT_API_KEY` is set. The project deploys and runs the full quiz with an empty environment. See `implementation-plan.md` for how and when each is switched on.
 
 ## Architecture
 
@@ -11,9 +13,10 @@ Squarespace /venue-quiz page
   -> Code Block
     -> iframe: Vercel deployment /embed-app.html
       -> POST /api/match
-        -> published Google Sheet CSV (fetched + cached in memory, ~5 min TTL)
+        -> data/venues.csv (default), or published Google Sheet CSV when
+           VENUE_SHEET_CSV_URL is set (fetched + cached in memory, ~5 min TTL)
         -> deterministic ranking engine
-        -> Kit subscriber + tag sync
+        -> Kit subscriber + tag sync (only when KIT_API_KEY is set)
 ```
 
 ### Key files
@@ -21,8 +24,9 @@ Squarespace /venue-quiz page
 - `embed-app.html` — deployable quiz frontend. It contains the approved visual design and question flow, but no private credentials or venue-ranking logic.
 - `squarespace-embed-preview.html` — local design-review harness that simulates the Squarespace page, host header/footer, iframe, responsive mobile frame, and embed inspector. Do not use this as the production embed.
 - `localhost-prototype.html` — original standalone prototype kept as a visual/reference comparison.
-- `api/match.ts` — Vercel endpoint for validation, ranking, and Kit sync.
-- `api/lib/venueSource.ts` — fetches and caches the published Google Sheet CSV in memory.
+- `data/venues.csv` — committed venue dataset; the default data source.
+- `api/match.ts` — Vercel endpoint for validation, ranking, and the optional Kit sync.
+- `api/lib/venueSource.ts` — reads `data/venues.csv`, or fetches and caches the published Google Sheet CSV when `VENUE_SHEET_CSV_URL` is set.
 - `api/lib/normalize.ts` — converts messy spreadsheet values into controlled fields.
 - `api/lib/importVenues.ts` — parses the CSV into normalized venue records.
 - `api/lib/ranking.ts` — hard filters, weighted scoring, result explanations, and Kit tag derivation.
@@ -72,21 +76,27 @@ Squarespace /venue-quiz page
 
 ### Environment variables
 
-| Variable | Purpose |
-| --- | --- |
-| `KIT_API_KEY` | Kit API v4 key; server-only |
-| `VENUE_SHEET_CSV_URL` | Published CSV URL for the Google Sheet venue tab |
-| `VERCEL_APP_PASSWORD` | Optional Vercel deployment protection password |
+All three are optional right now. With none of them set, the quiz runs on `data/venues.csv` and skips the Kit sync.
+
+| Variable | Purpose | Unset behavior |
+| --- | --- | --- |
+| `KIT_API_KEY` | Kit API v4 key; server-only | Kit sync is skipped; the response reports `kitSync: "skipped"` |
+| `VENUE_SHEET_CSV_URL` | Published CSV URL for the Google Sheet venue tab | Venue data is read from `data/venues.csv` |
+| `VERCEL_APP_PASSWORD` | Optional Vercel deployment protection password | No deployment protection |
 
 `.env` is ignored by Git. Never paste secret values into source files, Squarespace Code Blocks, browser JavaScript, or chat.
 
 ## Venue data workflow
 
-The Google Sheet is the operator-facing source of truth. Its header row should match the existing CSV:
+### Now: committed CSV
 
-`Author_Made_Venue_Quiz_Database_V2.xlsx - Venue Database.csv`
+`data/venues.csv` is the data source. To change venue data, edit that file, commit, and redeploy. Its
+header row is authoritative for the parser in `api/lib/importVenues.ts`.
 
-To publish it:
+### Later: published Google Sheet
+
+The Google Sheet becomes the operator-facing source of truth. Its header row must match
+`data/venues.csv`. To publish it:
 
 1. Import the CSV into Google Sheets.
 2. Keep the existing column headers unchanged.
@@ -94,11 +104,17 @@ To publish it:
 4. Select the venue tab and CSV format.
 5. Put the published URL in `VENUE_SHEET_CSV_URL`.
 
-Edits to the sheet go live automatically - `api/lib/venueSource.ts` fetches the CSV fresh and caches
-it in memory for about 5 minutes per warm serverless instance. There is no manual import step or
-admin endpoint to trigger; just edit the sheet and wait a few minutes.
+Once `VENUE_SHEET_CSV_URL` is set, edits to the sheet go live automatically - `api/lib/venueSource.ts`
+fetches the CSV fresh and caches it in memory for about 5 minutes per warm serverless instance. There
+is no manual import step or admin endpoint to trigger; just edit the sheet and wait a few minutes.
 
-A venue is excluded from matching when budget or capacity is blank, `TBD`, `Not established`, or otherwise lacks a usable value. Excluded rows stay in the sheet (and are still visible in `warnings` if you inspect a raw fetch) so they can be corrected later.
+### Exclusions
+
+A venue is excluded from matching when capacity has no usable upper bound, or when both budget flags
+(`Under $2k?`, `Under $5k?`) are blank or hedged. Hedged values such as `Unclear; likely yes` or
+`Yes (ceremony only)` are treated as unknown rather than as a `Yes`, so they never place a venue in a
+budget bucket it may not actually fit. Excluded rows stay in the data (and are visible in `warnings`
+if you inspect a raw fetch) so they can be corrected later. 39 of the current 41 rows are eligible.
 
 ## Matching behavior
 
@@ -132,7 +148,14 @@ The scoring is deterministic. Adding or editing venue data does not require edit
 - `narrow` — one to three venues pass the hard filters.
 - `closest` — no venue passes both hard filters; the closest eligible venues are returned with a disclaimer.
 
-## Kit setup
+## Kit setup (deferred)
+
+The Kit sync is currently off. `api/match.ts` only calls Kit when `KIT_API_KEY` is set; otherwise it
+logs that the sync was skipped and still returns the venue result. Note that while Kit is off the
+submitted email is used for nothing and is not stored anywhere, so use test addresses and do not send
+real traffic to the deploy until Kit is connected.
+
+To turn it on:
 
 1. In Kit, open **Account Settings -> Developer -> API**.
 2. Create a Kit API v4 key.
@@ -154,10 +177,12 @@ A temporary Kit outage does not prevent the visitor from seeing a valid venue re
 2. In Vercel, choose **Add New -> Project**.
 3. Import `michaeltkuo/wedding-venue-quiz`.
 4. Use the **Other** framework preset.
-5. Add both environment variables from `.env.example` (`KIT_API_KEY`, `VENUE_SHEET_CSV_URL`).
+5. Set no environment variables. Turn on **Deployment Protection** while the quiz is still being validated.
 6. Deploy and copy the resulting `*.vercel.app` URL.
 
-No build command is required. Vercel serves the static frontend and detects the TypeScript files in `api/` as serverless functions.
+No build command is required. Vercel serves the static frontend and detects the TypeScript files in `api/` as serverless functions. `vercel.json` bundles `data/**` into the function with `functions.includeFiles` so the venue CSV is readable at runtime.
+
+Add `VENUE_SHEET_CSV_URL` and `KIT_API_KEY` later, when moving to live sheet data and Kit.
 
 ## Squarespace embed
 
@@ -199,7 +224,7 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 - `npm run typecheck` passes.
 - `.env` is not tracked by Git.
-- Opening the published Google Sheet CSV URL directly in a browser returns raw CSV text.
+- If `VENUE_SHEET_CSV_URL` is set, opening it directly in a browser returns raw CSV text.
 - `/api/match` rejects invalid email and missing consent.
 - Budget and guest capacity behave as hard filters.
 - The closest-match state appears when no eligible venues pass both filters.
@@ -208,7 +233,8 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 - Open the Vercel URL directly and complete the quiz.
 - Submit a test email and confirm the result appears.
-- Confirm the subscriber and tags appear in Kit.
+- Confirm the response includes `kitSync: "skipped"` while Kit is off.
+- Once Kit is enabled, confirm the subscriber and tags appear in Kit.
 - Embed the Vercel URL in a Squarespace preview page.
 - Check desktop and mobile layouts.
 - Confirm there is no internal iframe scrollbar or large dead space.
@@ -218,9 +244,12 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 ### `Could not load venue data`
 
-Check that `VENUE_SHEET_CSV_URL` is set in the current environment and that the URL returns raw CSV
-when opened directly (not an HTML login/permissions page). Google Sheets "Publish to web" links can
-stop working if the sheet's sharing settings change.
+If `VENUE_SHEET_CSV_URL` is unset, the function could not read `data/venues.csv` from disk. Confirm
+the file is committed and that `vercel.json` still has the `functions.includeFiles` entry for `data/**`.
+
+If `VENUE_SHEET_CSV_URL` is set, check that the URL returns raw CSV when opened directly (not an HTML
+login/permissions page). Google Sheets "Publish to web" links can stop working if the sheet's sharing
+settings change. To rule the sheet out, unset the variable and redeploy to fall back to the committed CSV.
 
 ### The sheet fetch returns zero rows
 
