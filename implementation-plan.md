@@ -128,7 +128,7 @@ Amy's Asana notes called out atmosphere/scale as distinct from guest count. To k
 - Normalize `Yes`, `No`, `Some`, `Limited`, “unknown”, and blank distinctly.
 - Parse capacity into context-aware capacity information; preserve indoor/outdoor distinctions where the source states them.
 - Normalize the two budget flags, including ambiguous values (`Unknown; likely yes`, `Unclear`, `N/A; assume no`) as unknown, not yes/no.
-- Keep only venues with sufficient researched values for the selected hard constraints. `Research Status = Needs research`, `Verification Needed? = Yes`, and explicit missing hard-filter facts should make a venue ineligible for launch matching until reviewed.
+- Keep only venues with sufficient researched values for the selected hard constraints. `Research Status = Needs research`, a blank research status, and explicit missing hard-filter facts should make a venue ineligible for launch matching until reviewed. Do **not** filter on `Verification Needed?` — see the note below on why that column cannot carry this rule.
 
 ### Stage 3: Apply hard filters
 
@@ -181,8 +181,31 @@ Before launch, confirm/add:
 2. `Planning Style Fit` — controlled values: `guided`, `flexible`, `both`, `unknown`.
 3. Budget-flag semantics — whether “Yes” guarantees at least one realistic option for each event format/guest range, or only that some package starts in that tier. If the latter, add explicit budget/event-format caveat values.
 4. Capacity semantics for mixed layouts — preserve indoor and outdoor seated limits when given.
-5. Eligibility policy — current data has 12 `Needs research`, one blank research status, and ambiguous budget/micro-wedding values. Confirm these are excluded from normal recommendations until reviewed. Note that `Verification Needed?` is `Yes` on all 41 rows, so it cannot be used as an exclusion rule as written; either the column needs real per-venue values or the rule needs to rest on `Research Status` instead.
+5. Eligibility policy — current data has 12 `Needs research`, one blank research status, and ambiguous budget/micro-wedding values. Confirm these are excluded from normal recommendations until reviewed. See **Venue readiness columns** below for which column that rule should key on.
 6. Ordered style vocabulary — allowed values must exactly match Q1 options; keep spreadsheet order authoritative.
+
+### Venue readiness columns
+
+Three columns describe how complete a venue's research is. Only two of them are usable, and the third is an open question.
+
+| Column | Values | Usable as a filter? |
+|---|---|---|
+| `Research Status` | 28 `Substantially researched`, 12 `Needs research`, 1 blank | **Yes** — this is the eligibility column |
+| `Last Verified` | 28 dated notes (all `2026-08-10`), 13 blank | Supporting evidence; agrees with `Research Status` exactly |
+| `Verification Needed?` | 37 `Yes`, 3 `Yes — recheck before quiz launch`, 1 blank | **No** — see below |
+
+`Research Status` and `Last Verified` agree on all 41 rows: every `Substantially researched` venue has a verification date, and every `Needs research` venue has none. That pair is the reliable record of which venues have been worked through, so **eligibility keys on `Research Status`**, giving 28 venues.
+
+`Verification Needed?` cannot carry the rule because it has no variance: every filled-in value is a `Yes`. The only blank is Baughman Center, the newest row, which is blank because nobody has filled it in yet — so a rule of "exclude where `Verification Needed? = Yes`" would keep exactly one venue, the least-researched one in the sheet.
+
+**Open question for Amy.** There are two readings of `Yes`, and they are opposites:
+
+- *"Verification is still needed"* — the work is outstanding.
+- *"I've verified this"* — the work is done and the venue qualifies.
+
+Nothing in the Asana thread settles it; Amy's two comments of 2026-09-21 never mention the column. The data favors the first reading: all 12 `Needs research` venues are marked `Yes` with no verification date, which would make them simultaneously unresearched and verified under the second reading, and the three `Yes — recheck before quiz launch` rows read as work still pending. But that is inference, not Amy's stated intent.
+
+Ask her directly: *does `Verification Needed? = Yes` mean you've checked it, or that it still needs checking before launch?* If she confirms the second reading, the fix is to correct those 12 rows, not to change the filter. Either way the launch eligibility rule rests on `Research Status`, so this question does not block the prototype.
 
 ## Kit Integration (deferred to Phase 3b)
 
@@ -259,7 +282,7 @@ A scroll-triggered popup can link to `/venue-quiz?start=1` to skip the intro CTA
 - Add ordered style-tag parsing.
 - Add structured dealbreaker and planning-style fields to the sheet, or explicitly decide to defer those fields and disable related hard filtering until present.
 - Resolve budget-flag semantics and mixed-layout capacity handling.
-- Set active eligibility rules for needs-research / verification-required rows.
+- Set active eligibility rules keyed on `Research Status` (see **Venue readiness columns**), and confirm with Amy what `Verification Needed?` means before relying on it for anything.
 
 ### Phase 2: Ten-question frontend alignment
 
@@ -323,5 +346,5 @@ The full checklist above is the launch bar. Phase 0 only has to clear this much:
 
 - **Approved:** deterministic ranking; 10 questions; Vercel + CSV + Kit; no submission history/reporting; Q7 is dealbreakers; hard filters precede scoring; ordered style tags; geography is a preference; top priority is a tie-breaker.
 - **Implemented:** static repo-based venue data with an env-var switch to the published sheet; Kit sync gated on `KIT_API_KEY`; CSV parser mapped to the 09.10.2026 budget-flag and style columns; 39 of 41 venues launch-eligible; personas return ranked results.
-- **Needs data-contract confirmation:** budget-flag meaning for specific ceremony/reception packages; mixed indoor/outdoor capacity representation; exact controlled dealbreaker and planning-style columns; final six Kit segment tag labels; eligibility of `Needs research` venues, and what to do about `Verification Needed?` being `Yes` on every row.
+- **Needs data-contract confirmation:** budget-flag meaning for specific ceremony/reception packages; mixed indoor/outdoor capacity representation; exact controlled dealbreaker and planning-style columns; final six Kit segment tag labels; eligibility of `Needs research` venues; the meaning of `Verification Needed?` (open question for Amy, below).
 - **Not yet implemented:** ordered primary/secondary/tertiary style-tag parsing, Q7 replacement, the weighted hierarchy in the table above (current scoring is the older ported version), one-tag Kit segmentation, result caveat output, frame-ancestors CSP, Squarespace configuration.
