@@ -670,10 +670,9 @@
       <section class="view is-active" data-view="intro">
         <div class="intro-hero">
           <div class="intro-content">
-            <p class="kicker">A venue quiz from Author Made</p>
             <h1>Which Orlando wedding venue fits your day?</h1>
             <p>
-              Tell us what matters most. We will narrow the search to one best-fit venue and a few more worth seeing.
+              A few questions. A (hopefully) perfect match. Based on our database of Orlando’s top wedding venues, lovingly researched by hand, narrow down your search to a best-fit venue for your day—and a few more worth considering.
             </p>
             <button class="button-primary" type="button" data-action="start">Find My Venue Match</button>
           </div>
@@ -694,7 +693,7 @@
               <button type="button" class="button-text" data-action="restart">Start Over</button>
             </div>
             <h1>Where should we send your venue match?</h1>
-            <p>Your result will appear right here after you submit. In the live build, this step will also add you to the Author Made venue email list.</p>
+            <p>Your results are here! Enter your email to reveal your venue matches.</p>
             <form class="email-form" id="email-form" novalidate>
               <label class="field-label" for="email">Email Address</label>
               <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
@@ -724,8 +723,8 @@
           <button class="button-secondary" type="button" data-action="restart">Retake With Different Priorities</button>
         </div>
         <section class="runners-section">
-          <p class="section-kicker" id="runners-kicker">Also worth a look</p>
-          <h2 class="runners-heading" id="runners-heading">More venues to see</h2>
+          <p class="section-kicker" id="runners-kicker">We think you'll love these, too</p>
+          <h2 class="runners-heading" id="runners-heading">Your runners-up</h2>
           <div class="runner-grid" id="runner-grid"></div>
         </section>
       </section>
@@ -754,80 +753,81 @@
           id: "vibe",
           category: "Your Vision",
           heading: "What should your venue feel like the moment you arrive?",
-          description: "Start with the atmosphere that feels most like the wedding you have been picturing.",
+          description: "Choose the venue atmosphere that feels most like the wedding you're picturing.",
           asideHeading: "The feeling comes first.",
           asideDescription: "We use the visual direction of your day to rank the venues that clear your must-haves.",
           options: [
             { value: "garden", title: "Garden Romance", description: "Lush grounds, flowers, open air, and golden-hour portraits." },
-            { value: "european", title: "Old-World Character", description: "Historic homes, arches, courtyards, and a sense of place." },
+            { value: "european", title: "Old-World Character", description: "Historic homes, arches, courtyards, or European-inspired." },
             { value: "modern", title: "Modern + Editorial", description: "Galleries, museums, clean lines, and city energy." },
-            { value: "rustic", title: "Relaxed + Rustic", description: "Wood, water, barns, natural texture, and an easygoing feel." },
-            { value: "classic", title: "Classic Elegance", description: "Timeless rooms, traditional polish, and a dressed-up celebration." }
+            { value: "rustic", title: "Relaxed + Rustic", description: "Barns, wood, natural texture, and a country feel." },
+            { value: "classic", title: "Classic Elegance", description: "Timeless architecture, traditional polish, and a classic tone." }
           ]
         },
         {
           id: "guestCount",
           category: "Your Guest List",
           heading: "About how many people are you inviting?",
-          description: "Choose the closest number you expect to host. This is one of the must-have filters for your shortlist.",
+          description: "Choose the closest number you expect to host.",
           asideHeading: "The room has to work.",
           asideDescription: "We will only rank venues that can comfortably support the size of celebration you select.",
           hardFilter: true,
           options: [
             { value: "up-to-50", minimumCapacity: 50, title: "Up To 50", description: "An intimate gathering, elopement, or small micro wedding." },
             { value: "51-100", minimumCapacity: 100, title: "51 To 100", description: "A smaller celebration with room for your favorite people." },
-            { value: "101-150", minimumCapacity: 150, title: "101 To 150", description: "A mid-size wedding with a fuller dance floor and dinner service." },
-            { value: "151-200", minimumCapacity: 200, title: "151 To 200", description: "A larger day that needs meaningful room to move." },
+            { value: "101-150", minimumCapacity: 150, title: "101 To 150", description: "A mid-size wedding with a comfortable amount of space." },
+            { value: "151-200", minimumCapacity: 200, title: "151 To 200", description: "A larger day needing meaningful room." },
             { value: "201-250", minimumCapacity: 250, title: "201 To 250", description: "A substantial celebration that needs a genuinely large venue." },
-            { value: "251-350", minimumCapacity: 350, title: "251 To 350", description: "A large wedding that needs the biggest spaces in the current database." }
+            { value: "251-350", minimumCapacity: 350, title: "251 To 350", description: "A wedding of grand scale needing the most amount of space." }
           ]
         },
         {
           id: "budget",
           category: "Your Budget",
-          heading: "What is your comfort zone for the venue rental?",
-          description: "This is treated as a must-have filter using the budget categories in the current venue database.",
+          heading: "What is your preferred budget for your venue rental?",
+          description: "Choose the range that feels most comfortable for your wedding budget.",
+          note: "Please note: costs reflect venue rental only, not including food + beverage, all inclusive packages, service charges, or your total wedding budget.",
           asideHeading: "A good match respects the math.",
           asideDescription: "The prototype uses the stated venue-budget fit from the research database, not a guessed total-wedding cost.",
           hardFilter: true,
           options: [
-            { value: "under-2k", title: "Under $2,000", description: "I need a venue with an under-$2k option." },
-            { value: "under-5k", title: "Under $5,000", description: "I am looking for a venue with an under-$5k option." },
-            { value: "flexible", title: "I Am Flexible", description: "Overall fit matters more than a fixed venue-rental ceiling." }
+            { value: "under-2k", title: "$2,000 Or Under", description: "I need a venue at rental cost of $2,000 or under." },
+            { value: "under-5k", title: "$5,000 Or Under", description: "I'm looking for a venue at rental cost of $5,000 or under." },
+            { value: "flexible", title: "I'm Flexible", description: "Overall fit matters more than a fixed budget ceiling." }
           ]
         },
         {
           id: "format",
           category: "Your Day",
           heading: "What kind of celebration are you planning at the venue?",
-          description: "The answer helps distinguish full-wedding venues from reception-focused spaces.",
+          description: "From all-day celebrations to dinner only, we can find a flexible space for your day.",
           asideHeading: "Picture the flow of the day.",
           asideDescription: "Some venues shine for a ceremony and reception in one place. Others are a better fit for the party afterward.",
           options: [
             { value: "full", title: "Ceremony + Reception", description: "One venue for both parts of the day." },
-            { value: "reception", title: "Reception First", description: "I mainly need a stylish place to celebrate afterward." },
-            { value: "open", title: "I Am Open", description: "I am still deciding how the day will be structured." }
+            { value: "reception", title: "Reception Only", description: "I mainly need a stylish place to celebrate afterward." },
+            { value: "open", title: "I'm Open", description: "I am still deciding how the day will be structured." }
           ]
         },
         {
           id: "setting",
           category: "Your Setting",
-          heading: "How do you want the space to work with the Florida weather?",
+          heading: "What is your ideal indoor/outdoor setting?",
           description: "Choose the setting arrangement that feels most comfortable for your day.",
           asideHeading: "The forecast is part of the plan.",
           asideDescription: "Outdoor beauty and a solid indoor option do not have to be competing priorities.",
           options: [
-            { value: "outdoor", title: "Outdoor First", description: "The ceremony and portraits need to feel outside and connected to the landscape." },
-            { value: "indoor", title: "Indoor First", description: "A climate-controlled interior is the priority." },
+            { value: "outdoor", title: "Primarily Outdoor", description: "I want ceremony and portraits held outside and feel connected to nature." },
+            { value: "indoor", title: "Primarily Indoor", description: "A climate-controlled indoor setting is ideal." },
             { value: "both", title: "The Best Of Both", description: "I want outside beauty with a real indoor option for the event." },
-            { value: "open", title: "I Am Open", description: "The venue itself matters more than a fixed indoor or outdoor plan." }
+            { value: "open", title: "I'm Open", description: "The venue itself matters more than a specific plan." }
           ]
         },
         {
           id: "location",
           category: "Your Area",
-          heading: "Which part of Central Florida feels most convenient?",
-          description: "Location is a preference in the prototype, so a great match can still travel a little beyond your first choice.",
+          heading: "Where in Central Florida do you prefer to find a venue?",
+          description: "Choose the ideal geographic area that feels most convenient.",
           asideHeading: "A little geography helps.",
           asideDescription: "We will favor your preferred area while leaving room for a venue that is clearly worth the drive.",
           options: [
@@ -855,7 +855,7 @@
           id: "perks",
           category: "Your Extras",
           heading: "Which extras would make the venue feel especially right?",
-          description: "Select all that genuinely matter. This is the one question where you can choose more than one answer.",
+          description: "Select all that genuinely matter; this is a question where anything that feels right can be included.",
           asideHeading: "The details do the work.",
           asideDescription: "These preferences will shape the order of the venues that have already cleared the hard budget and guest-count rules.",
           multiple: true,
@@ -863,15 +863,15 @@
             { value: "weather", title: "Weather Backup", description: "A strong indoor contingency matters to us." },
             { value: "lodging", title: "Overnight Stay", description: "On-site rooms or accommodations would be useful." },
             { value: "allInclusive", title: "All-Inclusive Support", description: "We would value built-in planning or catering support." },
-            { value: "vendors", title: "Vendor Flexibility", description: "We want freedom to bring in our own trusted team." },
-            { value: "photos", title: "Portrait Potential", description: "A photogenic setting and great natural light matter a lot." }
+            { value: "vendors", title: "Vendor Flexibility", description: "We want freedom to bring in our own catering." },
+            { value: "photos", title: "Portrait Potential", description: "A photogenic setting with dreamy, natural lighting matters a lot." }
           ]
         },
         {
           id: "planning",
           category: "Your Planning Style",
           heading: "What kind of venue experience sounds most helpful?",
-          description: "This is a soft preference, not a rule. It helps distinguish a guided package from a more flexible blank slate.",
+          description: "Select the amount of venue-guided planning assistance that fits your needs.",
           asideHeading: "Let the venue carry its share.",
           asideDescription: "Some couples want an easy built-in path. Others want latitude to make each part of the day their own.",
           options: [
@@ -934,7 +934,7 @@
           </div>
           <h1>${question.heading}</h1>
           <p class="question-description">${question.description}</p>
-          ${question.hardFilter ? '<p class="filter-note">Must-have filter: results must satisfy this answer before they are ranked.</p>' : ""}
+          ${question.note ? `<p class="filter-note">${question.note}</p>` : ""}
           <div class="answer-grid" role="group" aria-label="${answerLabel}">
             ${question.options
               .map(
@@ -1088,8 +1088,8 @@
           disclaimerEl.hidden = true;
         }
 
-        runnersKicker.textContent = runnersUp.length ? "Also worth a look" : "Your shortlist";
-        runnersHeading.textContent = runnersUp.length ? "Three more to see" : "Your venue match";
+        runnersKicker.textContent = runnersUp.length ? "We think you'll love these, too" : "Your shortlist";
+        runnersHeading.textContent = runnersUp.length ? "Your runners-up" : "Your venue match";
 
         if (!runnersUp.length) {
           runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count or budget filter to explore a broader shortlist.</p>';
@@ -1100,7 +1100,7 @@
                 <article class="runner">
                   <span class="runner-number">Runner-up ${index + 1}</span>
                   <h3>${venue.name}</h3>
-                  <p>${venue.city ? `${venue.city}. ` : ""}${venue.note || ""}</p>
+                  <p>${venue.city ? `Located in ${venue.city}. ` : ""}${venue.note || ""}</p>
                   <a href="${venue.url || "#"}" target="_blank" rel="noreferrer">Read the venue review</a>
                 </article>
               `
