@@ -1,0 +1,46 @@
+<!--
+  Squarespace real-page test for the compact embed mockup (compact-embed-mockup.html).
+  Paste ONE of the two blocks below into a Code Block on an unlisted Squarespace test page.
+  Turn OFF the Code Block's "Display Source" option. Test on desktop and on a phone.
+
+  QUIZ_ORIGIN must be the origin the iframe loads from; it is used both in the iframe src and in the
+  message check, so only messages from the quiz can resize the frame.
+-->
+
+<!-- ===================== Option A: grow to fit (recommended) ===================== -->
+<!-- The iframe starts short and resizes to the card's height on every screen. -->
+<iframe
+  id="venue-quiz-frame"
+  src="QUIZ_ORIGIN/compact-embed-mockup.html?embed=1"
+  style="display:block; width:100%; height:560px; border:0;"
+  title="Which Orlando Wedding Venue Fits You?"
+></iframe>
+<script>
+  (function () {
+    var quizOrigin = "QUIZ_ORIGIN";
+    var HEADER_OFFSET = 100; // room for a sticky Squarespace header; adjust if the quiz top hides under it
+    var frame = document.getElementById("venue-quiz-frame");
+    window.addEventListener("message", function (event) {
+      if (event.origin !== quizOrigin || !event.data) return;
+      if (event.data.type === "quiz-resize") {
+        frame.style.height = event.data.height + "px";
+      }
+      if (event.data.type === "quiz-scroll-top") {
+        var top = frame.getBoundingClientRect().top;
+        if (top < 0 || top > window.innerHeight * 0.5) {
+          window.scrollTo({ top: window.scrollY + top - HEADER_OFFSET, behavior: "smooth" });
+        }
+      }
+    });
+  })();
+</script>
+
+<!-- ===================== Option B: fixed height, scrolls inside ===================== -->
+<!-- Delete Option A above and uncomment this block to compare.
+<iframe
+  id="venue-quiz-frame"
+  src="QUIZ_ORIGIN/compact-embed-mockup.html?embed=1&height=fixed"
+  style="display:block; width:100%; height:640px; border:0;"
+  title="Which Orlando Wedding Venue Fits You?"
+></iframe>
+-->

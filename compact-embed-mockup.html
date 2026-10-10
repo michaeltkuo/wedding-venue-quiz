@@ -243,6 +243,39 @@
         overflow-y: auto;
       }
 
+      /* Embed mode (?embed=1): the card alone, filling the Squarespace iframe. Used for the real-page test. */
+      html.is-embed,
+      html.is-embed body {
+        background: transparent;
+        min-width: 0;
+      }
+
+      html.is-embed .shell-toolbar,
+      html.is-embed .shell-notes,
+      html.is-embed .faux-lines,
+      html.is-embed .block-caption {
+        display: none;
+      }
+
+      html.is-embed .shell-stage {
+        padding: 0;
+      }
+
+      html.is-embed .faux-page {
+        max-width: none;
+      }
+
+      html.is-embed .block-frame {
+        min-width: 0;
+        outline: 0;
+        resize: none;
+        width: 100%;
+      }
+
+      html.is-embed .block-frame.is-fixed {
+        height: 100vh;
+      }
+
       @media (max-width: 640px) {
         .shell-range {
           width: 120px;
@@ -875,6 +908,11 @@
         }
       }
     </style>
+    <script>
+      if (new URLSearchParams(window.location.search).get("embed") === "1") {
+        document.documentElement.classList.add("is-embed");
+      }
+    </script>
   </head>
   <body>
     <!-- ================= REVIEW SHELL ================= -->
@@ -1212,6 +1250,8 @@
         var widthButtons = document.querySelectorAll("[data-width]");
         var heightButtons = document.querySelectorAll("[data-height]");
         var screenButtons = document.querySelectorAll(".shell-toolbar [data-goto]");
+        var params = new URLSearchParams(window.location.search);
+        var embedded = params.get("embed") === "1" && window.parent !== window;
 
         /* ---- Card state machine ---- */
         function showScreen(name) {
@@ -1222,6 +1262,11 @@
             button.setAttribute("aria-pressed", String(button.dataset.goto === name));
           });
           frame.scrollTop = 0;
+          if (embedded) {
+            // The parent page owns the scroll position, so ask it to bring the top of the quiz into view.
+            window.parent.postMessage({ type: "quiz-scroll-top" }, "*");
+            return;
+          }
           var top = frame.getBoundingClientRect().top;
           if (top < 0) {
             frame.scrollIntoView({ block: "start" });
@@ -1314,11 +1359,20 @@
         });
 
         /* ---- Deep links for review/screenshots: ?w=360&screen=results&height=fixed ---- */
-        var params = new URLSearchParams(window.location.search);
         if (params.get("w")) setWidth(Number(params.get("w")));
         if (params.get("screen")) showScreen(params.get("screen"));
         if (params.get("height") === "fixed") document.querySelector('[data-height="fixed"]').click();
         if (params.get("notes") === "open") document.querySelector(".shell-notes").open = true;
+
+        /* ---- Embed mode: report the card's height so the Squarespace iframe can grow and shrink with it.
+           Same "quiz-resize" message embed-app.html sends. In fixed-height mode the iframe stays put. ---- */
+        if (embedded && params.get("height") !== "fixed") {
+          var reportHeight = function () {
+            window.parent.postMessage({ type: "quiz-resize", height: Math.ceil(quiz.getBoundingClientRect().height) }, "*");
+          };
+          new ResizeObserver(reportHeight).observe(quiz);
+          window.addEventListener("load", reportHeight);
+        }
       })();
     </script>
   </body>
