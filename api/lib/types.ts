@@ -17,6 +17,8 @@ export type VenueRow = {
   outdoor_support: TriState | null;
   primary_vibe: string | null;
   micro_wedding_fit: boolean;
+  outdoor_only_ceremony: boolean;
+  requires_in_house_catering: boolean;
   garden_flag: boolean;
   historic_flag: boolean;
   european_flag: boolean;
@@ -53,7 +55,7 @@ export interface QuizAnswers {
   format?: string;
   setting?: string;
   location?: string;
-  micro?: string;
+  dealbreaker?: string;
   perks?: string[];
   planning?: string;
   priority?: string;

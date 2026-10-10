@@ -1,11 +1,13 @@
 import { parse } from "csv-parse/sync";
 import {
   deriveRegion,
+  isOutdoorOnlyCeremony,
   normalizeBoolean,
   normalizeBudget,
   normalizeCapacity,
   normalizeNumeric,
   normalizeTriState,
+  requiresInHouseCatering,
   slugify,
   splitList,
 } from "./normalize";
@@ -73,6 +75,8 @@ export function parseVenueCsv(csvText: string): ImportResult {
       outdoor_support: normalizeTriState(row["Outdoor"]),
       primary_vibe: row["Primary Style / Vibe"]?.trim() || null,
       micro_wedding_fit: normalizeBoolean(row["Micro-Wedding Fit"]),
+      outdoor_only_ceremony: isOutdoorOnlyCeremony(row["Indoor"]),
+      requires_in_house_catering: requiresInHouseCatering(row["Catering"]),
       garden_flag: /garden|botanical/.test(styleText(row)),
       historic_flag: /historic/.test(styleText(row)),
       european_flag: /old-world|old world|european/.test(styleText(row)),

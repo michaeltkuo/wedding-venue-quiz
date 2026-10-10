@@ -118,3 +118,24 @@ export function splitList(raw: string | null | undefined): string[] {
     .map((item) => item.trim())
     .filter(Boolean);
 }
+
+// The Indoor column is free text ("Yes", "Yes (reception)", "Backup option", "No / limited"...).
+// Couples read "indoor vs outdoor" mostly as the ceremony, so a venue whose indoor space is only for
+// the reception, a rain backup, or getting ready counts as an outdoor-only ceremony. A dedicated
+// "Ceremony setting" column in the sheet would replace this heuristic.
+export function isOutdoorOnlyCeremony(indoorRaw: string | null | undefined): boolean {
+  const text = (indoorRaw ?? "").trim().toLowerCase();
+  if (!text || text.includes("not stated")) return false;
+  if (text.startsWith("no") || text.startsWith("backup")) return true;
+  return /\([^)]*\b(reception|backup|getting ready)/.test(text);
+}
+
+// The Catering column is free text. True only when it says the venue's own or approved caterer is
+// required; packages with a DIY / bring-your-own option, "not required", and blank or "Not stated"
+// (unknown, not "no") all stay false. An "Outside caterer allowed?" column would replace this.
+export function requiresInHouseCatering(cateringRaw: string | null | undefined): boolean {
+  const text = (cateringRaw ?? "").trim().toLowerCase();
+  if (!text || text.includes("not stated") || /^(no|n\/a)\b/.test(text)) return false;
+  if (/diy|not required|provide your own|outside cater|a la carte/.test(text)) return false;
+  return /required|must use|exclusive|approved list|preferred (vendors|providers)|in-house/.test(text);
+}

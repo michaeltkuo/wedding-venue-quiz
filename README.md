@@ -135,7 +135,8 @@ Remaining venues are scored using:
 - ceremony/reception format
 - indoor/outdoor preference
 - location preference
-- micro-wedding fit
+- micro-wedding fit (when the guest count is "Up to 50")
+- a dealbreaker penalty (Q7: one pick, lowers a venue's score but never removes it)
 - selected perks
 - planning style
 - final priority

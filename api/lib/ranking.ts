@@ -75,10 +75,50 @@ function locationScore(venue: VenueRow, locationAnswer: string | undefined): num
   return venue.region === locationAnswer ? 10 : 0;
 }
 
-function microScore(venue: VenueRow, microAnswer: string | undefined): number {
-  if (!microAnswer || microAnswer === "open") return 3;
-  if (microAnswer === "yes") return venue.micro_wedding_fit ? 10 : 0;
-  if (microAnswer === "no") return venue.micro_wedding_fit ? 0 : 10;
+// Q7 was the micro-wedding question; Q2's guest count now carries that signal. A venue Amy marked as a
+// micro-wedding fit gets the same boost whenever the couple picks the smallest guest-count range.
+function microScore(venue: VenueRow, guestCountAnswer: string | undefined): number {
+  return guestCountAnswer === "up-to-50" && venue.micro_wedding_fit ? 10 : 0;
+}
+
+// Q7 dealbreakers lower a venue's score instead of removing it, so couples always see four results.
+// A full-strength hit (40) outweighs a perfect style match (30), so a venue with the couple's dealbreaker
+// almost never outranks one without it.
+const DEALBREAKER_PENALTY = 40;
+const SECONDARY_STYLE_PENALTY = 10;
+
+// Primary Style / Vibe lists up to three styles in order of importance ("Garden Romance / Classic
+// Elegance / Old-World Character"), so a style listed first is penalized fully and a later one lightly.
+const DEALBREAKER_STYLES: Record<string, string> = {
+  rustic: "rustic",
+  modern: "modern",
+  oldWorld: "old-world",
+};
+
+// Cities roughly an hour or more from Orlando. Amy maintains this list as venues are added.
+const FAR_FROM_ORLANDO = new Set([
+  "daytona beach",
+  "port orange",
+  "st. augustine",
+  "gainesville",
+  "lake wales",
+  "webster",
+  "pierson",
+]);
+
+function dealbreakerPenalty(venue: VenueRow, dealbreaker: string | undefined): number {
+  if (!dealbreaker || dealbreaker === "none") return 0;
+  const style = DEALBREAKER_STYLES[dealbreaker];
+  if (style) {
+    const position = venueVibeTokens(venue).findIndex((token) => token.includes(style));
+    if (position === 0) return DEALBREAKER_PENALTY;
+    return position > 0 ? SECONDARY_STYLE_PENALTY : 0;
+  }
+  if (dealbreaker === "outdoorCeremony") return venue.outdoor_only_ceremony ? DEALBREAKER_PENALTY : 0;
+  if (dealbreaker === "longDrive") {
+    return FAR_FROM_ORLANDO.has((venue.city_area ?? "").trim().toLowerCase()) ? DEALBREAKER_PENALTY : 0;
+  }
+  if (dealbreaker === "inHouseCatering") return venue.requires_in_house_catering ? DEALBREAKER_PENALTY : 0;
   return 0;
 }
 
@@ -128,7 +168,8 @@ export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
   if (matchesFormat(venue, answers.format)) score += 15;
   score += settingScore(venue, answers.setting);
   score += locationScore(venue, answers.location);
-  score += microScore(venue, answers.micro);
+  score += microScore(venue, answers.guestCount);
+  score -= dealbreakerPenalty(venue, answers.dealbreaker);
   score += perksScore(venue, answers.perks ?? []);
   score += planningScore(venue, answers.planning);
   score += priorityScore(venue, answers.priority, answers.guestMinimum ?? 0);
@@ -186,7 +227,7 @@ export function buildSummary(venue: RankedVenue, answers: QuizAnswers): string {
   } else if (answers.setting === "indoor" && venue.indoor_support === "yes") {
     reasons.push("a strong indoor event space");
   }
-  if (answers.micro === "yes" && venue.micro_wedding_fit) {
+  if (answers.guestCount === "up-to-50" && venue.micro_wedding_fit) {
     reasons.push("a genuine micro-wedding fit");
   }
   if (perks.includes("lodging") && venue.overnight_accommodation === "yes") {
@@ -213,7 +254,7 @@ export function buildDisplayTags(venue: RankedVenue, answers: QuizAnswers): stri
   const labels: string[] = [];
   const perks = answers.perks ?? [];
   if (matchesVibe(venue, answers.vibe)) labels.push(stylePhrase(answers.vibe));
-  if (answers.micro === "yes" && venue.micro_wedding_fit) labels.push("micro wedding fit");
+  if (answers.guestCount === "up-to-50" && venue.micro_wedding_fit) labels.push("micro wedding fit");
   if (venue.weather_backup === "yes" && (answers.setting === "both" || perks.includes("weather"))) labels.push("weather backup");
   if (venue.overnight_accommodation === "yes" && perks.includes("lodging")) labels.push("overnight stay");
   if (isAllInclusiveVenue(venue) && (perks.includes("allInclusive") || answers.planning === "allInclusive")) labels.push("guided planning");
