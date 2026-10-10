@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Review-only mockup: a compact, container-driven version of the Author Made venue quiz card, shown inside a resizable simulated Squarespace block."
+    />
+    <title>Compact Embed Mockup | Author Made Venue Quiz</title>
+    <style>
+      /* =====================================================================
+         REVIEW SHELL (grey, small sans). Not part of the quiz card.
+         ===================================================================== */
+      :root {
+        --shell-bg: #e6e6e8;
+        --shell-panel: #ffffff;
+        --shell-line: #c9c9ce;
+        --shell-text: #2b2b30;
+        --shell-muted: #6b6b73;
+        --shell-accent: #3a5bd9;
+        --shell-font: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: var(--shell-bg);
+      }
+
+      body {
+        background: var(--shell-bg);
+        color: var(--shell-text);
+        font-family: var(--shell-font);
+        font-size: 13px;
+        margin: 0;
+        min-width: 320px;
+      }
+
+      .shell-toolbar {
+        background: var(--shell-panel);
+        border-bottom: 1px solid var(--shell-line);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 22px;
+        padding: 10px 16px;
+        z-index: 10;
+      }
+
+      /* Sticky only where there is room; on phones the toolbar would cover the card. */
+      @media (min-width: 900px) {
+        .shell-toolbar {
+          position: sticky;
+          top: 0;
+        }
+      }
+
+      .shell-title {
+        align-self: center;
+        flex: 1 0 100%;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .shell-title span {
+        color: var(--shell-muted);
+        font-weight: 400;
+      }
+
+      .shell-group {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .shell-label {
+        color: var(--shell-muted);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        margin-right: 2px;
+        text-transform: uppercase;
+      }
+
+      .shell-btn {
+        background: #f4f4f6;
+        border: 1px solid var(--shell-line);
+        border-radius: 6px;
+        color: var(--shell-text);
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        min-height: 30px;
+        padding: 4px 10px;
+      }
+
+      .shell-btn:hover {
+        background: #ebebef;
+      }
+
+      .shell-btn[aria-pressed="true"] {
+        background: var(--shell-accent);
+        border-color: var(--shell-accent);
+        color: #fff;
+      }
+
+      .shell-btn:focus-visible,
+      .shell-range:focus-visible,
+      .shell-notes summary:focus-visible {
+        outline: 2px solid var(--shell-accent);
+        outline-offset: 2px;
+      }
+
+      .shell-btn small {
+        opacity: 0.75;
+      }
+
+      .shell-range {
+        accent-color: var(--shell-accent);
+        width: 160px;
+      }
+
+      .shell-readout {
+        color: var(--shell-muted);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        min-width: 14ch;
+      }
+
+      .shell-notes {
+        background: var(--shell-panel);
+        border: 1px solid var(--shell-line);
+        border-radius: 8px;
+        line-height: 1.55;
+        margin: 16px auto 0;
+        max-width: 1040px;
+        padding: 0 16px;
+      }
+
+      .shell-notes summary {
+        cursor: pointer;
+        font-weight: 600;
+        padding: 12px 0;
+      }
+
+      .shell-notes h3 {
+        font-size: 12px;
+        letter-spacing: 0.03em;
+        margin: 14px 0 4px;
+        text-transform: uppercase;
+      }
+
+      .shell-notes ul {
+        margin: 0 0 8px;
+        padding-left: 18px;
+      }
+
+      .shell-notes li {
+        margin: 3px 0;
+      }
+
+      .shell-notes p {
+        margin: 4px 0 8px;
+      }
+
+      .shell-notes code {
+        background: #f0f0f3;
+        border-radius: 4px;
+        font-size: 12px;
+        padding: 1px 4px;
+      }
+
+      .shell-stage {
+        padding: 20px 16px 64px;
+      }
+
+      /* Faux Squarespace page content above and below the block, so the card reads as one element in a page. */
+      .faux-page {
+        margin: 0 auto;
+        max-width: 1040px;
+      }
+
+      .faux-lines {
+        display: grid;
+        gap: 8px;
+        margin: 0 auto 18px;
+        max-width: 620px;
+      }
+
+      .faux-lines span {
+        background: #d4d4d8;
+        border-radius: 3px;
+        display: block;
+        height: 9px;
+      }
+
+      .faux-lines span:nth-child(1) {
+        height: 16px;
+        width: 46%;
+        margin-bottom: 6px;
+      }
+
+      .faux-lines span:nth-child(3) {
+        width: 88%;
+      }
+
+      .faux-lines span:nth-child(4) {
+        width: 64%;
+      }
+
+      .faux-lines.after {
+        margin: 22px auto 0;
+      }
+
+      .block-caption {
+        color: var(--shell-muted);
+        font-size: 11px;
+        margin: 0 auto 6px;
+        max-width: 100%;
+        text-align: left;
+      }
+
+      /* The simulated Squarespace Code Block. Width comes from the presets/slider/drag handle. */
+      .block-frame {
+        background: transparent;
+        margin: 0 auto;
+        max-width: 100%;
+        min-width: 300px;
+        outline: 1px dashed #9a9aa3;
+        outline-offset: 4px;
+        overflow: hidden;
+        resize: horizontal;
+        width: 700px;
+      }
+
+      .block-frame.is-fixed {
+        height: 640px;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      @media (max-width: 640px) {
+        .shell-range {
+          width: 120px;
+        }
+      }
+
+      /* =====================================================================
+         QUIZ CARD (production candidate). Brand tokens copied from embed-app.html.
+         Everything below responds to the card's own width via container queries.
+         ===================================================================== */
+      .quiz {
+        --ink: #181614;
+        --ink-soft: #2c2925;
+        --cream: #f3efe8;
+        --cream-strong: #fffdf9;
+        --sand: #ddd2c2;
+        --rust: #a76425;
+        --rust-deep: #824a18;
+        --muted: #5d554e;
+        --line-dark: rgba(24, 22, 20, 0.2);
+        --photo-bg: #cfc4b5;
+        --serif: Didot, "Bodoni 72", "Times New Roman", serif;
+        --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+        background: var(--cream);
+        border: 1px solid var(--line-dark);
+        color: var(--ink);
+        container-name: quiz;
+        container-type: inline-size;
+        font-family: var(--sans);
+        font-size: 16px;
+        overflow-wrap: break-word;
+      }
+
+      /* :where() keeps this reset at zero specificity so .btn / .answer sizes win. */
+      .quiz :where(button, input) {
+        font: inherit;
+      }
+
+      .quiz button {
+        cursor: pointer;
+      }
+
+      .quiz a {
+        color: inherit;
+      }
+
+      .quiz :focus-visible {
+        outline: 2px solid var(--rust);
+        outline-offset: 3px;
+      }
+
+      .screen {
+        display: none;
+        /* Fluid spacing driven by the card's width (cqi = 1% of the card's inline size). */
+        --pad: clamp(20px, 2px + 4.6cqi, 48px);
+        --gap: clamp(16px, 6px + 2.6cqi, 40px);
+        --text: clamp(15px, 13.5px + 0.35cqi, 17px);
+      }
+
+      .screen.is-active {
+        display: block;
+      }
+
+      /* ---- Shared type ---- */
+      .kicker {
+        color: var(--rust-deep);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        line-height: 1.4;
+        margin: 0 0 clamp(10px, 4px + 1.4cqi, 16px);
+        text-transform: uppercase;
+      }
+
+      .display {
+        font-family: var(--serif);
+        font-weight: 400;
+        line-height: 0.95;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .display-xl {
+        /* ~30px at a 360px card, ~56px at 1000px. */
+        font-size: clamp(30px, 15.4px + 4.06cqi, 56px);
+      }
+
+      .display-l {
+        font-size: clamp(26px, 14px + 3.3cqi, 46px);
+      }
+
+      .display-m {
+        font-size: clamp(26px, 17px + 2.4cqi, 40px);
+      }
+
+      .lede {
+        color: var(--muted);
+        font-size: var(--text);
+        line-height: 1.6;
+        margin: clamp(14px, 8px + 1.6cqi, 22px) 0 0;
+        max-width: 60ch;
+      }
+
+      /* ---- Buttons (square, uppercase, as in embed-app.html) ---- */
+      .btn {
+        align-items: center;
+        border-radius: 0;
+        display: inline-flex;
+        font-size: 13px;
+        font-weight: 700;
+        justify-content: center;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        min-height: 52px;
+        padding: 14px 24px;
+        text-align: center;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+      }
+
+      .btn-primary {
+        background: var(--rust);
+        border: 1px solid var(--rust);
+        color: #fff;
+      }
+
+      .quiz a.btn-primary {
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--rust-deep);
+        border-color: var(--rust-deep);
+      }
+
+      .btn-primary:disabled {
+        background: #ad9f90;
+        border-color: #ad9f90;
+        cursor: not-allowed;
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--ink);
+        color: var(--ink);
+      }
+
+      .btn-secondary:hover {
+        background: var(--cream-strong);
+      }
+
+      .btn-text {
+        align-items: center;
+        background: none;
+        border: 0;
+        color: var(--muted);
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        min-height: 44px;
+        padding: 0 2px;
+        text-decoration: underline;
+        text-transform: uppercase;
+        text-underline-offset: 4px;
+        white-space: nowrap;
+      }
+
+      .btn-text:hover {
+        color: var(--rust-deep);
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      @container quiz (min-width: 460px) {
+        .actions {
+          align-items: center;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .actions .btn {
+          width: auto;
+        }
+      }
+
+      /* ---- Contained photo: fixed aspect ratio, never a full-bleed background ---- */
+      .photo {
+        aspect-ratio: 3 / 2;
+        background: var(--photo-bg);
+        margin: 0;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+      }
+
+      .photo img {
+        display: block;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+      }
+
+      /* If an image fails, hide the broken-image glyph and let the neutral box carry the layout. */
+      .photo.is-missing img {
+        visibility: hidden;
+      }
+
+      .photo.is-missing::after {
+        color: rgba(24, 22, 20, 0.45);
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 700;
+        inset: 0;
+        letter-spacing: 0.04em;
+        display: grid;
+        padding: 8px;
+        place-items: center;
+        position: absolute;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      /* ---- Hero pattern used by Intro and the top result ----
+         Narrow: photo stacks on top (edge to edge), text below.
+         Wide (>= 640px card): photo and text side by side, no text over photo. */
+      .hero-body {
+        padding: var(--pad);
+      }
+
+      @container quiz (min-width: 640px) {
+        .hero {
+          align-items: center;
+          display: grid;
+          gap: var(--gap);
+          grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+          padding: var(--pad);
+        }
+
+        .hero .photo {
+          aspect-ratio: 4 / 5;
+        }
+
+        .hero-body {
+          padding: 0;
+        }
+      }
+
+      /* In a medium split the text column is narrow, so hero buttons stack full width. */
+      @container quiz (min-width: 640px) and (max-width: 959.98px) {
+        .hero .actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .hero .actions .btn {
+          width: 100%;
+        }
+      }
+
+      @container quiz (min-width: 960px) {
+        .hero {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+      }
+
+      /* ---- Questions ---- */
+      .q-wrap,
+      .email-wrap {
+        margin: 0 auto;
+        max-width: 900px;
+        padding: var(--pad);
+      }
+
+      .q-meta {
+        align-items: center;
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+      }
+
+      .q-count {
+        color: var(--rust-deep);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .progress {
+        background: var(--sand);
+        height: 3px;
+        margin: 4px 0 clamp(18px, 10px + 2.4cqi, 30px);
+        overflow: hidden;
+      }
+
+      .progress span {
+        background: var(--rust);
+        display: block;
+        height: 100%;
+      }
+
+      .answer-hint {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin: clamp(18px, 10px + 2cqi, 26px) 0 10px;
+        text-transform: uppercase;
+      }
+
+      .answers {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      @container quiz (min-width: 560px) {
+        .answers {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .answer {
+        align-content: start;
+        align-items: start;
+        background: var(--cream-strong);
+        border: 1px solid var(--line-dark);
+        border-radius: 0;
+        color: var(--ink);
+        display: grid;
+        gap: 4px 12px;
+        grid-template-columns: auto minmax(0, 1fr);
+        min-height: 64px;
+        padding: clamp(14px, 10px + 1cqi, 18px);
+        text-align: left;
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+      }
+
+      .answer:hover {
+        border-color: var(--rust);
+      }
+
+      .answer-mark {
+        border: 1px solid var(--line-dark);
+        display: grid;
+        grid-row: span 2;
+        height: 20px;
+        margin-top: 1px;
+        place-items: center;
+        width: 20px;
+      }
+
+      .answer.is-single .answer-mark {
+        border-radius: 50%;
+      }
+
+      .answer-title {
+        font-family: var(--serif);
+        font-size: clamp(18px, 15px + 0.8cqi, 22px);
+        line-height: 1.05;
+        text-transform: uppercase;
+      }
+
+      .answer-desc {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .answer[aria-pressed="true"] {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+
+      .answer[aria-pressed="true"] .answer-desc {
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .answer[aria-pressed="true"] .answer-mark {
+        background: var(--rust);
+        border-color: var(--rust);
+      }
+
+      .answer[aria-pressed="true"] .answer-mark::after {
+        border-bottom: 2px solid #fff;
+        border-right: 2px solid #fff;
+        content: "";
+        height: 9px;
+        margin-top: -2px;
+        transform: rotate(45deg);
+        width: 5px;
+      }
+
+      .q-actions {
+        align-items: stretch;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 6px;
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
+      }
+
+      .q-actions .btn {
+        width: 100%;
+      }
+
+      .q-actions .btn-text[hidden] {
+        display: none;
+      }
+
+      @container quiz (min-width: 460px) {
+        .q-actions {
+          align-items: center;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+
+        .q-actions .btn {
+          margin-left: auto;
+          width: auto;
+        }
+      }
+
+      /* ---- Email ---- */
+      .email-wrap {
+        max-width: 720px;
+      }
+
+      .email-form {
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
+      }
+
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+
+      .email-input {
+        background: #fff;
+        border: 1px solid var(--line-dark);
+        border-radius: 0;
+        color: var(--ink);
+        font-size: 17px;
+        min-height: 54px;
+        padding: 12px 14px;
+        width: 100%;
+      }
+
+      .email-input:focus {
+        border-color: var(--rust);
+      }
+
+      .consent {
+        align-items: flex-start;
+        color: var(--muted);
+        cursor: pointer;
+        display: flex;
+        font-size: 13px;
+        gap: 12px;
+        line-height: 1.55;
+        margin: 14px 0 6px;
+        min-height: 44px;
+        padding: 6px 0;
+      }
+
+      .consent input {
+        accent-color: var(--rust);
+        flex: 0 0 auto;
+        height: 20px;
+        margin: 1px 0 0;
+        width: 20px;
+      }
+
+      .form-error {
+        color: #9a2f27;
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0;
+        min-height: 0;
+      }
+
+      .form-error:empty {
+        display: none;
+      }
+
+      @container quiz (min-width: 560px) {
+        .email-row {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .email-row .field-label {
+          grid-column: 1 / -1;
+          margin-bottom: 0;
+        }
+      }
+
+      .email-submit {
+        margin-top: 8px;
+        width: 100%;
+      }
+
+      @container quiz (min-width: 560px) {
+        .email-submit {
+          width: auto;
+        }
+      }
+
+      /* ---- Results ---- */
+      .runners {
+        border-top: 1px solid var(--line-dark);
+        padding: var(--pad);
+      }
+
+      .runners .display-m {
+        margin-bottom: clamp(18px, 10px + 2.4cqi, 30px);
+      }
+
+      .runner-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .runner {
+        background: var(--cream-strong);
+        border: 1px solid var(--line-dark);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .runner .photo {
+        aspect-ratio: 3 / 2;
+      }
+
+      .runner-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 16px 18px 18px;
+      }
+
+      .runner-label {
+        color: var(--rust);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+      }
+
+      .runner h3 {
+        font-family: var(--serif);
+        font-size: clamp(22px, 18px + 0.8cqi, 28px);
+        font-weight: 400;
+        line-height: 1;
+        margin: 0;
+        text-transform: uppercase;
+      }
+
+      .runner p:not(.runner-label) {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+        margin: 10px 0 0;
+      }
+
+      .runner .btn-text {
+        align-self: flex-start;
+        color: var(--rust-deep);
+        font-size: 11px;
+        margin-top: auto;
+        padding-top: 8px;
+      }
+
+      /* Narrow and medium cards: runners are compact horizontal rows (thumbnail beside text). */
+      @container quiz (max-width: 759.98px) {
+        .runner {
+          display: grid;
+          grid-template-columns: 104px minmax(0, 1fr);
+        }
+
+        .runner .photo {
+          aspect-ratio: auto;
+          height: 100%;
+          min-height: 120px;
+        }
+
+        .runner-body {
+          padding: 14px 14px 12px;
+        }
+      }
+
+      @container quiz (min-width: 460px) and (max-width: 759.98px) {
+        .runner {
+          grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        }
+
+        .runner .photo {
+          min-height: 160px;
+        }
+
+        .runner-body {
+          padding: 16px 18px 14px;
+        }
+      }
+
+      /* Wide card: three across. */
+      @container quiz (min-width: 760px) {
+        .runner-grid {
+          gap: 16px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ================= REVIEW SHELL ================= -->
+    <div class="shell-toolbar" role="toolbar" aria-label="Mockup review controls">
+      <p class="shell-title">
+        Compact embed mockup <span>· review only, not wired to the quiz API · grey controls are not part of the card</span>
+      </p>
+
+      <div class="shell-group" role="group" aria-label="Block width">
+        <span class="shell-label">Block width</span>
+        <button class="shell-btn" type="button" data-width="360">Phone <small>360</small></button>
+        <button class="shell-btn" type="button" data-width="480">Small <small>480</small></button>
+        <button class="shell-btn" type="button" data-width="700" aria-pressed="true">Medium <small>700</small></button>
+        <button class="shell-btn" type="button" data-width="1000">Wide <small>1000</small></button>
+        <input class="shell-range" id="width-range" type="range" min="300" max="1200" step="10" value="700" aria-label="Block width in pixels" />
+        <span class="shell-readout" id="width-readout">700px</span>
+      </div>
+
+      <div class="shell-group" role="group" aria-label="Block height behavior">
+        <span class="shell-label">Height</span>
+        <button class="shell-btn" type="button" data-height="grow" aria-pressed="true">Grow to fit content</button>
+        <button class="shell-btn" type="button" data-height="fixed">Fixed 640px + internal scroll</button>
+      </div>
+
+      <div class="shell-group" role="group" aria-label="Screen">
+        <span class="shell-label">Screen</span>
+        <button class="shell-btn" type="button" data-goto="intro" aria-pressed="true">Intro</button>
+        <button class="shell-btn" type="button" data-goto="q1">Question (single)</button>
+        <button class="shell-btn" type="button" data-goto="q8">Question (multi)</button>
+        <button class="shell-btn" type="button" data-goto="email">Email capture</button>
+        <button class="shell-btn" type="button" data-goto="results">Results</button>
+      </div>
+    </div>
+
+    <details class="shell-notes">
+      <summary>What changed vs. the current embed, and why (click to expand)</summary>
+      <h3>The problem</h3>
+      <p>
+        The current <code>embed-app.html</code> is laid out like a full-width page: the intro and results heroes are full-bleed
+        <code>background-size: cover</code> images about 420px tall with 72&ndash;76px headlines, and breakpoints use viewport
+        <code>@media</code> queries. Inside a wide Squarespace block the photo turns into a thin cropped banner strip
+        (Amy's QC notes: &ldquo;weird half-page crop&rdquo;, &ldquo;banner image is squished&rdquo;).
+      </p>
+      <h3>What this mockup does instead</h3>
+      <ul>
+        <li>
+          <strong>Container-driven sizing.</strong> The card root has <code>container-type: inline-size</code>; every layout switch is an
+          <code>@container</code> rule on the card's own width, so it behaves the same whether the block is a phone-width column or a
+          narrow column on a desktop page.
+        </li>
+        <li>
+          <strong>Contained photo instead of a full-bleed banner.</strong> Photos are real <code>&lt;img&gt;</code> elements with
+          <code>object-fit: cover</code> at a fixed aspect ratio (3:2 stacked on narrow cards, 4:5 beside the text at &ge; 640px). The
+          photo can no longer be squashed into a strip, and no text sits on top of it, so no dark gradient is needed.
+        </li>
+        <li>
+          <strong>Fluid type.</strong> Headlines use <code>clamp()</code> with <code>cqi</code> units (intro headline about 30px at a
+          360px card, 56px at 1000px); padding and gaps scale the same way.
+        </li>
+        <li>
+          <strong>Layout steps:</strong> answers go 1 &rarr; 2 columns at 560px; buttons go full-width &rarr; inline at 460px; runners-up
+          are compact thumbnail rows below 760px and three across above it.
+        </li>
+        <li>
+          Copy is Amy's approved wording. Match tag chips are left off the result on purpose (pending a decision). One runner-up
+          (Villa Festa) has no review link, to show the &ldquo;link only when a dedicated review exists&rdquo; behavior.
+        </li>
+        <li>
+          Venue photos don't exist yet, so the existing <code>FALLBACK_IMAGES</code> are used. If an image fails to load, the neutral
+          photo box keeps its size.
+        </li>
+      </ul>
+      <h3>Open question: how should the Squarespace block size itself?</h3>
+      <ul>
+        <li>
+          <strong>Grow to fit content</strong> (default here): the iframe height follows the card via the existing
+          <code>{type: "quiz-resize", height}</code> message. No inner scrollbar, but the page height changes on every screen.
+        </li>
+        <li>
+          <strong>Fixed-height block</strong> (e.g. 640px): the page never jumps, but long screens (results, the 5-option questions
+          on phones) scroll inside the block, which means a nested scrollbar on mobile.
+        </li>
+      </ul>
+      <p>Use the Height toggle above to compare. Both work with this card; nothing in the layout depends on the choice.</p>
+      <p>
+        <strong>If approved:</strong> port the card CSS and markup into <code>embed-app.html</code> in a separate PR, keeping the
+        existing question flow, API call, and resize message.
+      </p>
+    </details>
+
+    <main class="shell-stage">
+      <div class="faux-page">
+        <div class="faux-lines" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <p class="block-caption" id="block-caption">Simulated Squarespace Code Block &middot; drag the bottom-right corner to resize</p>
+
+        <div class="block-frame" id="block-frame">
+          <!-- ================= QUIZ CARD ================= -->
+          <div class="quiz" id="quiz">
+            <!-- Intro -->
+            <section class="screen is-active" data-screen="intro" aria-labelledby="intro-title">
+              <div class="hero">
+                <figure class="photo" data-label="Venue photo">
+                  <img
+                    src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w"
+                    alt="A couple at an Orlando wedding venue"
+                    loading="eager"
+                  />
+                </figure>
+                <div class="hero-body">
+                  <h1 class="display display-xl" id="intro-title">Which Orlando wedding venue fits your day?</h1>
+                  <p class="lede">
+                    A few questions. A (hopefully) perfect match. Based on our database of Orlando&rsquo;s top wedding venues, lovingly
+                    researched by hand, narrow down your search to a best-fit venue for your day&mdash;and a few more worth considering.
+                  </p>
+                  <div class="actions">
+                    <button class="btn btn-primary" type="button" data-goto="q1">Find My Venue Match</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Question: single choice (Q1) -->
+            <section class="screen" data-screen="q1" aria-labelledby="q1-title">
+              <div class="q-wrap">
+                <div class="q-meta">
+                  <p class="q-count">01 / 10 &middot; Your Vision</p>
+                  <button class="btn-text" type="button" data-goto="intro">Start Over</button>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="1">
+                  <span style="width: 10%"></span>
+                </div>
+                <h1 class="display display-l" id="q1-title">What should your venue feel like the moment you arrive?</h1>
+                <p class="lede">Choose the venue atmosphere that feels most like the wedding you're picturing.</p>
+                <p class="answer-hint" id="q1-hint">Choose one</p>
+                <div class="answers" role="group" aria-labelledby="q1-hint" data-question="q1" data-mode="single">
+                  <button class="answer is-single" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Garden Romance</span>
+                    <span class="answer-desc">Lush grounds, flowers, open air, and golden-hour portraits.</span>
+                  </button>
+                  <button class="answer is-single" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Old-World Character</span>
+                    <span class="answer-desc">Historic homes, arches, courtyards, or European-inspired.</span>
+                  </button>
+                  <button class="answer is-single" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Modern + Editorial</span>
+                    <span class="answer-desc">Galleries, museums, clean lines, and city energy.</span>
+                  </button>
+                  <button class="answer is-single" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Relaxed + Rustic</span>
+                    <span class="answer-desc">Barns, wood, natural texture, and a country feel.</span>
+                  </button>
+                  <button class="answer is-single" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Classic Elegance</span>
+                    <span class="answer-desc">Timeless architecture, traditional polish, and a classic tone.</span>
+                  </button>
+                </div>
+                <div class="q-actions">
+                  <button class="btn-text" type="button" hidden>&larr; Previous Question</button>
+                  <button class="btn btn-primary" type="button" data-goto="q8" data-next-for="q1" disabled>Next Question</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Question: multi-select (Q8) -->
+            <section class="screen" data-screen="q8" aria-labelledby="q8-title">
+              <div class="q-wrap">
+                <div class="q-meta">
+                  <p class="q-count">08 / 10 &middot; Your Extras</p>
+                  <button class="btn-text" type="button" data-goto="intro">Start Over</button>
+                </div>
+                <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="8">
+                  <span style="width: 80%"></span>
+                </div>
+                <h1 class="display display-l" id="q8-title">Which extras would make the venue feel especially right?</h1>
+                <p class="lede">
+                  Select all that genuinely matter; this is a question where anything that feels right can be included.
+                </p>
+                <p class="answer-hint" id="q8-hint">Select all that apply</p>
+                <div class="answers" role="group" aria-labelledby="q8-hint" data-question="q8" data-mode="multi">
+                  <button class="answer" type="button" aria-pressed="true">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Weather Backup</span>
+                    <span class="answer-desc">A strong indoor contingency matters to us.</span>
+                  </button>
+                  <button class="answer" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Overnight Stay</span>
+                    <span class="answer-desc">On-site rooms or accommodations would be useful.</span>
+                  </button>
+                  <button class="answer" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">All-Inclusive Support</span>
+                    <span class="answer-desc">We would value built-in planning or catering support.</span>
+                  </button>
+                  <button class="answer" type="button" aria-pressed="false">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Vendor Flexibility</span>
+                    <span class="answer-desc">We want freedom to bring in our own catering.</span>
+                  </button>
+                  <button class="answer" type="button" aria-pressed="true">
+                    <span class="answer-mark" aria-hidden="true"></span>
+                    <span class="answer-title">Portrait Potential</span>
+                    <span class="answer-desc">A photogenic setting with dreamy, natural lighting matters a lot.</span>
+                  </button>
+                </div>
+                <div class="q-actions">
+                  <button class="btn-text" type="button" data-goto="q1">&larr; Previous Question</button>
+                  <button class="btn btn-primary" type="button" data-goto="email" data-next-for="q8">Next Question</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Email capture -->
+            <section class="screen" data-screen="email" aria-labelledby="email-title">
+              <div class="email-wrap">
+                <div class="q-meta">
+                  <p class="q-count">Your results are ready</p>
+                  <button class="btn-text" type="button" data-goto="intro">Start Over</button>
+                </div>
+                <div class="progress" aria-hidden="true"><span style="width: 100%"></span></div>
+                <h1 class="display display-l" id="email-title">Where should we send your venue match?</h1>
+                <p class="lede">Your results are here! Enter your email to reveal your venue matches.</p>
+                <form class="email-form" id="email-form" novalidate>
+                  <div class="email-row">
+                    <label class="field-label" for="mock-email">Email Address</label>
+                    <input class="email-input" id="mock-email" type="email" autocomplete="email" placeholder="you@example.com" />
+                  </div>
+                  <label class="consent" for="mock-consent">
+                    <input id="mock-consent" type="checkbox" />
+                    <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
+                  </label>
+                  <p class="form-error" id="form-error" role="alert"></p>
+                  <button class="btn btn-primary email-submit" type="submit">Show My Matches</button>
+                </form>
+              </div>
+            </section>
+
+            <!-- Results -->
+            <section class="screen" data-screen="results" aria-labelledby="result-title">
+              <div class="hero">
+                <figure class="photo" data-label="Leu Gardens photo">
+                  <img
+                    src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/e589994d-cf0a-40cf-8e2e-6b04f1a5e424/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w"
+                    alt="Leu Gardens"
+                    loading="lazy"
+                  />
+                </figure>
+                <div class="hero-body">
+                  <p class="kicker">Your top venue match</p>
+                  <h1 class="display display-xl" id="result-title">Leu Gardens</h1>
+                  <p class="lede">
+                    Leu Gardens rose to the top for your day, perfectly pairing a garden-forward setting with outdoor beauty, and
+                    including a weather backup option. With nearly 50 acres of gardens, secluded paths, beautiful portrait
+                    opportunities, and an option for an indoor reception, we think you'll love this venue as much as we do.
+                  </p>
+                  <div class="actions">
+                    <a class="btn btn-primary" href="#" data-mock-link>Read The Venue Review</a>
+                    <button class="btn btn-secondary" type="button" data-goto="q1">Retake With Different Priorities</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="runners">
+                <p class="kicker">We think you'll love these, too</p>
+                <h2 class="display display-m">Your runners-up</h2>
+                <div class="runner-grid">
+                  <article class="runner">
+                    <figure class="photo" data-label="Capen House photo">
+                      <img
+                        src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/f5b863bd-1dc8-474e-b408-58bd98ff2ad7/Small+intimate+micro+wedding+best+affordable+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w"
+                        alt="Capen House"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <div class="runner-body">
+                      <p class="runner-label">Runner-up 1</p>
+                      <h3>Capen House</h3>
+                      <p>Located in Winter Park. A historic Victorian home with a lakefront backyard, brick patio, and garden character.</p>
+                      <a class="btn-text" href="#" data-mock-link>Read the venue review</a>
+                    </div>
+                  </article>
+                  <article class="runner">
+                    <figure class="photo" data-label="Casa Feliz photo">
+                      <img
+                        src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/32ea3105-6399-4bbf-907c-a55b5a52fa27/Small+intimate+microwedding+best+wedding+photographer+wedding+videographer+near+me+winter+garden+orlando+daytona+beach+lakeland+st+cloud+Maitland+deland+central+Florida+wedding+photography+videography.jpg?format=1500w"
+                        alt="Casa Feliz"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <div class="runner-body">
+                      <p class="runner-label">Runner-up 2</p>
+                      <h3>Casa Feliz</h3>
+                      <p>Located in Winter Park. Spanish-inspired architecture, arches, courtyard views, lush grounds, and warm historic interiors.</p>
+                      <a class="btn-text" href="#" data-mock-link>Read the venue review</a>
+                    </div>
+                  </article>
+                  <article class="runner">
+                    <figure class="photo" data-label="Villa Festa photo">
+                      <img
+                        src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w"
+                        alt="Villa Festa"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <div class="runner-body">
+                      <p class="runner-label">Runner-up 3</p>
+                      <h3>Villa Festa</h3>
+                      <p>Located in DeLand. Italian Renaissance Revival architecture, bright interiors, a shaded ceremony setting, and overnight accommodations.</p>
+                      <!-- No dedicated review yet, so no link is shown. -->
+                    </div>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </div>
+          <!-- ================= /QUIZ CARD ================= -->
+        </div>
+
+        <div class="faux-lines after" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        var frame = document.getElementById("block-frame");
+        var quiz = document.getElementById("quiz");
+        var range = document.getElementById("width-range");
+        var readout = document.getElementById("width-readout");
+        var screens = quiz.querySelectorAll("[data-screen]");
+        var widthButtons = document.querySelectorAll("[data-width]");
+        var heightButtons = document.querySelectorAll("[data-height]");
+        var screenButtons = document.querySelectorAll(".shell-toolbar [data-goto]");
+
+        /* ---- Card state machine ---- */
+        function showScreen(name) {
+          screens.forEach(function (screen) {
+            screen.classList.toggle("is-active", screen.dataset.screen === name);
+          });
+          screenButtons.forEach(function (button) {
+            button.setAttribute("aria-pressed", String(button.dataset.goto === name));
+          });
+          frame.scrollTop = 0;
+          var top = frame.getBoundingClientRect().top;
+          if (top < 0) {
+            frame.scrollIntoView({ block: "start" });
+            window.scrollBy(0, -80);
+          }
+        }
+
+        document.addEventListener("click", function (event) {
+          var link = event.target.closest("[data-mock-link]");
+          if (link) {
+            event.preventDefault();
+            return;
+          }
+          var go = event.target.closest("[data-goto]");
+          if (go && !go.disabled) {
+            showScreen(go.dataset.goto);
+          }
+        });
+
+        quiz.querySelectorAll(".answers").forEach(function (group) {
+          var single = group.dataset.mode === "single";
+          var next = quiz.querySelector('[data-next-for="' + group.dataset.question + '"]');
+          group.addEventListener("click", function (event) {
+            var option = event.target.closest(".answer");
+            if (!option) return;
+            var pressed = option.getAttribute("aria-pressed") === "true";
+            if (single) {
+              group.querySelectorAll(".answer").forEach(function (other) {
+                other.setAttribute("aria-pressed", "false");
+              });
+              option.setAttribute("aria-pressed", "true");
+            } else {
+              option.setAttribute("aria-pressed", String(!pressed));
+            }
+            if (next) {
+              next.disabled = !group.querySelector('[aria-pressed="true"]');
+            }
+          });
+        });
+
+        document.getElementById("email-form").addEventListener("submit", function (event) {
+          event.preventDefault();
+          showScreen("results");
+        });
+
+        /* ---- Missing images keep their box ---- */
+        quiz.querySelectorAll(".photo img").forEach(function (img) {
+          function markMissing() {
+            img.parentElement.classList.add("is-missing");
+          }
+          if (img.complete && img.naturalWidth === 0 && img.currentSrc) markMissing();
+          img.addEventListener("error", markMissing);
+        });
+
+        /* ---- Block width: presets, slider, and drag handle all stay in sync ---- */
+        function setWidth(px) {
+          frame.style.width = px + "px";
+        }
+
+        function syncWidthUI() {
+          var w = Math.round(frame.getBoundingClientRect().width);
+          readout.textContent = w + "px card";
+          range.value = String(w);
+          widthButtons.forEach(function (button) {
+            button.setAttribute("aria-pressed", String(Math.abs(Number(button.dataset.width) - w) < 2));
+          });
+        }
+
+        widthButtons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            setWidth(Number(button.dataset.width));
+          });
+        });
+
+        range.addEventListener("input", function () {
+          setWidth(Number(range.value));
+        });
+
+        new ResizeObserver(syncWidthUI).observe(frame);
+
+        /* ---- Block height behavior ---- */
+        heightButtons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            var fixed = button.dataset.height === "fixed";
+            frame.classList.toggle("is-fixed", fixed);
+            heightButtons.forEach(function (other) {
+              other.setAttribute("aria-pressed", String(other === button));
+            });
+          });
+        });
+
+        /* ---- Deep links for review/screenshots: ?w=360&screen=results&height=fixed ---- */
+        var params = new URLSearchParams(window.location.search);
+        if (params.get("w")) setWidth(Number(params.get("w")));
+        if (params.get("screen")) showScreen(params.get("screen"));
+        if (params.get("height") === "fixed") document.querySelector('[data-height="fixed"]').click();
+        if (params.get("notes") === "open") document.querySelector(".shell-notes").open = true;
+      })();
+    </script>
+  </body>
+</html>

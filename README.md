@@ -23,6 +23,7 @@ Squarespace /venue-quiz page
 
 - `embed-app.html` — deployable quiz frontend. It contains the approved visual design and question flow, but no private credentials or venue-ranking logic.
 - `squarespace-embed-preview.html` — local design-review harness that simulates the Squarespace page, host header/footer, iframe, responsive mobile frame, and embed inspector. Do not use this as the production embed.
+- `compact-embed-mockup.html` — review-only mockup of a compact, container-driven layout for the quiz card (not wired to the API).
 - `localhost-prototype.html` — original standalone prototype kept as a visual/reference comparison.
 - `data/venues.csv` — committed venue dataset; the default data source.
 - `api/match.ts` — Vercel endpoint for validation, ranking, and the optional Kit sync.
