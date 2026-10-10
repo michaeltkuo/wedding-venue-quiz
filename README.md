@@ -186,29 +186,47 @@ Add `VENUE_SHEET_CSV_URL` and `KIT_API_KEY` later, when moving to live sheet dat
 
 ## Squarespace embed
 
-Create a dedicated Squarespace page such as `/venue-quiz`, then add a Code Block containing:
+Create a dedicated Squarespace page such as `/venue-quiz`, then add a Code Block (with **Display Source** turned off) containing:
 
 ```html
 <iframe
   id="venue-quiz-frame"
   src="https://YOUR-VERCEL-APP.vercel.app/"
-  style="width:100%; border:0; min-height:900px;"
-  loading="lazy"
+  style="display:block; width:100%; height:560px; border:0;"
   title="Which Orlando Wedding Venue Fits You?"
 ></iframe>
 <script>
-  window.addEventListener("message", (event) => {
-    if (event.origin !== "https://YOUR-VERCEL-APP.vercel.app") return;
-    if (event.data && event.data.type === "quiz-resize") {
-      document.getElementById("venue-quiz-frame").style.height = event.data.height + "px";
-    }
-  });
+  (function () {
+    var quizOrigin = "https://YOUR-VERCEL-APP.vercel.app";
+    var HEADER_OFFSET = 100; // room for a sticky Squarespace header; adjust if the quiz top hides under it
+    var frame = document.getElementById("venue-quiz-frame");
+    window.addEventListener("message", function (event) {
+      if (event.origin !== quizOrigin || !event.data) return;
+      if (event.data.type === "quiz-resize") {
+        frame.style.height = event.data.height + "px";
+      }
+      if (event.data.type === "quiz-scroll-top") {
+        var top = frame.getBoundingClientRect().top;
+        if (top < 0 || top > window.innerHeight * 0.5) {
+          window.scrollTo({ top: window.scrollY + top - HEADER_OFFSET, behavior: "smooth" });
+        }
+      }
+    });
+  })();
 </script>
 ```
 
 Replace `YOUR-VERCEL-APP` in both places. The deployed app should also use a `Content-Security-Policy` `frame-ancestors` rule allowing only `https://www.authormadephoto.com`.
 
-The iframe frontend posts its document height whenever the quiz view changes or content resizes. This prevents nested scrollbars on Squarespace, especially on mobile.
+The quiz is a single card that fills 100% of the iframe's width and lays itself out from that width (container queries), so the Code Block can sit in a full-width section or a narrower column. The iframe frontend posts two messages to the host page:
+
+- `{ type: "quiz-resize", height }` — the card's height, whenever the screen changes or the content resizes. The iframe grows and shrinks to fit, so there is no nested scrollbar. The `560px` in the snippet is only the starting height before the first message arrives.
+- `{ type: "quiz-scroll-top" }` — on every screen or question change. The listener scrolls the page so the top of the quiz is in view, but only when the quiz top has scrolled above the viewport or sits below its middle, so it does not jump when the top is already visible.
+
+Notes from testing on the live Squarespace page:
+
+- In Squarespace's Fluid Engine, drag the Code Block as short as it will go on desktop. The block grows past its drawn height when the iframe gets taller, but it never shrinks below the drawn height, so a tall block leaves dead space under the quiz on shorter screens.
+- The site's floating "Schedule a Free Consultation" button can overlap the quiz on phones. Check the answer buttons and Next button on a phone before launch.
 
 ### Popup-to-quiz entry flow
 
@@ -265,7 +283,7 @@ Check the deployed URL directly first. Then inspect the browser console for a `f
 
 ### Nested scrolling appears in Squarespace
 
-Confirm the Code Block's `message` listener uses the same `quiz-resize` event type and that the iframe height is updated from the event payload. Do not set a small fixed height in production.
+Confirm the Code Block matches the snippet in [Squarespace embed](#squarespace-embed): the listener's `quizOrigin` must exactly match the iframe `src` origin (scheme and host, no trailing slash), and it must handle the `quiz-resize` event type by setting the iframe height from the event payload. The iframe's starting `height:560px` is only a fallback until the first message arrives; do not add a `min-height` or `overflow` rule that keeps the iframe from following the quiz. If there is dead space below the quiz on desktop, the Fluid Engine Code Block is drawn taller than the quiz; drag it shorter.
 
 ## Security notes
 

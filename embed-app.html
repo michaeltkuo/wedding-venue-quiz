@@ -9,7 +9,21 @@
     />
     <title>Which Orlando Wedding Venue Fits You? | Author Made</title>
     <style>
-      :root {
+      /* This file is always iframed into a Squarespace Code Block, so the page itself is just the quiz card at
+         100% of the iframe's width. Every layout switch below is an @container rule on the card's own width
+         (not a viewport @media query), so it behaves the same in a phone-width column or a narrow desktop column. */
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        background: transparent;
+        margin: 0;
+        min-width: 0;
+      }
+
+      .quiz {
         --ink: #181614;
         --ink-soft: #2c2925;
         --cream: #f3efe8;
@@ -17,369 +31,489 @@
         --sand: #ddd2c2;
         --rust: #a76425;
         --rust-deep: #824a18;
-        --line-light: rgba(255, 255, 255, 0.42);
+        --muted: #5d554e;
         --line-dark: rgba(24, 22, 20, 0.2);
+        --photo-bg: #cfc4b5;
         --serif: Didot, "Bodoni 72", "Times New Roman", serif;
         --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      }
 
-      * {
-        box-sizing: border-box;
-      }
-
-      html {
         background: var(--cream);
-      }
-
-      body {
-        margin: 0;
-        min-width: 320px;
-        background: var(--cream);
+        border: 1px solid var(--line-dark);
         color: var(--ink);
+        container-name: quiz;
+        container-type: inline-size;
         font-family: var(--sans);
         font-size: 16px;
+        overflow-wrap: break-word;
+        width: 100%;
       }
 
-      button,
-      input {
+      /* :where() keeps this reset at zero specificity so .btn / .answer sizes win. */
+      .quiz :where(button, input) {
         font: inherit;
       }
 
-      button {
+      .quiz button {
         cursor: pointer;
       }
 
-      a {
+      .quiz a {
         color: inherit;
       }
 
-      .view {
-        display: none;
+      .quiz [hidden] {
+        display: none !important;
       }
 
-      .view.is-active {
+      .quiz :focus-visible {
+        outline: 2px solid var(--rust);
+        outline-offset: 3px;
+      }
+
+      .screen {
+        display: none;
+        /* Fluid spacing driven by the card's width (cqi = 1% of the card's inline size). */
+        --pad: clamp(20px, 2px + 4.6cqi, 48px);
+        --gap: clamp(16px, 6px + 2.6cqi, 40px);
+        --text: clamp(15px, 13.5px + 0.35cqi, 17px);
+      }
+
+      .screen.is-active {
         display: block;
       }
 
-      .intro-hero {
-        background-color: #39332c;
-        background-image:
-          linear-gradient(90deg, rgba(18, 16, 14, 0.8) 0%, rgba(18, 16, 14, 0.5) 41%, rgba(18, 16, 14, 0.03) 76%),
-          url("https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w");
-        background-position: center;
-        background-size: cover;
-        color: #fff;
-        position: relative;
-      }
-
-      .intro-content {
-        align-items: start;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        margin: 0 auto;
-        max-width: 1440px;
-        min-height: 420px;
-        padding: 64px 42px 56px;
-      }
-
+      /* ---- Shared type ---- */
       .kicker {
-        color: inherit;
-        font-family: var(--sans);
+        color: var(--rust-deep);
         font-size: 12px;
         font-weight: 700;
+        letter-spacing: 0.02em;
         line-height: 1.4;
-        margin: 0 0 18px;
-        max-width: 470px;
+        margin: 0 0 clamp(10px, 4px + 1.4cqi, 16px);
         text-transform: uppercase;
       }
 
-      .intro-content h1,
-      .results-hero h1 {
+      .display {
         font-family: var(--serif);
-        font-size: 72px;
         font-weight: 400;
-        line-height: 0.91;
+        line-height: 0.95;
         margin: 0;
-        max-width: 680px;
         text-transform: uppercase;
       }
 
-      .intro-content p:not(.kicker) {
-        font-size: 17px;
+      .display-xl {
+        /* ~30px at a 360px card, ~56px at 1000px. */
+        font-size: clamp(30px, 15.4px + 4.06cqi, 56px);
+      }
+
+      .display-l {
+        font-size: clamp(26px, 14px + 3.3cqi, 46px);
+      }
+
+      .display-m {
+        font-size: clamp(26px, 17px + 2.4cqi, 40px);
+      }
+
+      .lede {
+        color: var(--muted);
+        font-size: var(--text);
         line-height: 1.6;
-        margin: 28px 0 30px;
-        max-width: 490px;
+        margin: clamp(14px, 8px + 1.6cqi, 22px) 0 0;
+        max-width: 60ch;
       }
 
-      .button-primary,
-      .button-secondary,
-      .button-text,
-      .answer-option {
+      /* ---- Buttons (square, uppercase) ---- */
+      .btn {
+        align-items: center;
         border-radius: 0;
-      }
-
-      .button-primary {
-        background: var(--rust);
-        border: 1px solid var(--rust);
-        color: #fff;
+        display: inline-flex;
         font-size: 13px;
         font-weight: 700;
+        justify-content: center;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
         min-height: 52px;
         padding: 14px 24px;
+        text-align: center;
+        text-decoration: none;
         text-transform: uppercase;
         transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
       }
 
-      .button-primary:hover {
-        background: var(--rust-deep);
-        border-color: var(--rust-deep);
-        transform: translateY(-1px);
+      .btn-primary {
+        background: var(--rust);
+        border: 1px solid var(--rust);
+        color: #fff;
       }
 
-      .button-primary:disabled {
+      .quiz a.btn-primary {
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        background: var(--rust-deep);
+        border-color: var(--rust-deep);
+      }
+
+      .btn-primary:disabled {
         background: #ad9f90;
         border-color: #ad9f90;
         cursor: not-allowed;
-        transform: none;
       }
 
-      .button-secondary {
+      .btn-secondary {
         background: transparent;
-        border: 1px solid currentColor;
-        color: inherit;
-        font-size: 13px;
-        font-weight: 700;
-        min-height: 52px;
-        padding: 14px 24px;
-        text-transform: uppercase;
+        border: 1px solid var(--ink);
+        color: var(--ink);
       }
 
-      .button-secondary:hover {
-        background: rgba(255, 255, 255, 0.12);
+      .btn-secondary:hover {
+        background: var(--cream-strong);
       }
 
-      .button-text {
+      .btn-text {
+        align-items: center;
         background: none;
         border: 0;
-        color: inherit;
+        color: var(--muted);
+        display: inline-flex;
         font-size: 12px;
         font-weight: 700;
-        padding: 6px 0;
+        min-height: 44px;
+        padding: 0 2px;
         text-decoration: underline;
+        text-transform: uppercase;
         text-underline-offset: 4px;
+        white-space: nowrap;
+      }
+
+      .btn-text:hover {
+        color: var(--rust-deep);
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
+      }
+
+      .actions .btn {
+        width: 100%;
+      }
+
+      @container quiz (min-width: 460px) {
+        .actions {
+          align-items: center;
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .actions .btn {
+          width: auto;
+        }
+      }
+
+      /* ---- Contained photo: fixed aspect ratio, never a full-bleed background ---- */
+      .photo {
+        aspect-ratio: 3 / 2;
+        background: var(--photo-bg);
+        margin: 0;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+      }
+
+      .photo img {
+        display: block;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+      }
+
+      /* If an image fails, hide the broken-image glyph and let the neutral box carry the layout. */
+      .photo.is-missing img {
+        visibility: hidden;
+      }
+
+      .photo.is-missing::after {
+        color: rgba(24, 22, 20, 0.45);
+        content: attr(data-label);
+        display: grid;
+        font-size: 11px;
+        font-weight: 700;
+        inset: 0;
+        letter-spacing: 0.04em;
+        padding: 8px;
+        place-items: center;
+        position: absolute;
+        text-align: center;
         text-transform: uppercase;
       }
 
-      .button-text:hover {
-        color: var(--rust);
+      /* ---- Hero pattern used by the intro and the top result ----
+         Narrow: photo stacks on top (edge to edge), text below.
+         Wide (>= 640px card): photo and text side by side, no text over the photo. */
+      .hero-body {
+        padding: var(--pad);
       }
 
-      .quiz-view,
-      .email-view {
-        background: var(--cream);
+      @container quiz (min-width: 640px) {
+        .hero {
+          align-items: center;
+          display: grid;
+          gap: var(--gap);
+          grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+          padding: var(--pad);
+        }
+
+        .hero .photo {
+          aspect-ratio: 4 / 5;
+        }
+
+        .hero-body {
+          padding: 0;
+        }
       }
 
-      .quiz-meta-row {
+      /* In a medium split the text column is narrow, so hero buttons stack full width. */
+      @container quiz (min-width: 640px) and (max-width: 959.98px) {
+        .hero .actions {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .hero .actions .btn {
+          width: 100%;
+        }
+      }
+
+      @container quiz (min-width: 960px) {
+        .hero {
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+      }
+
+      /* ---- Questions ---- */
+      .q-wrap,
+      .email-wrap {
+        margin: 0 auto;
+        max-width: 900px;
+        padding: var(--pad);
+      }
+
+      .q-meta {
         align-items: center;
         display: flex;
         gap: 12px;
         justify-content: space-between;
-        margin: 0 0 22px;
       }
 
-      .quiz-meta-row .question-count {
-        margin: 0;
-      }
-
-      .quiz-meta-row .button-text {
-        color: #5d554e;
-        white-space: nowrap;
-      }
-
-      .quiz-meta-row .button-text:hover {
-        color: var(--rust-deep);
-      }
-
-      .question-panel,
-      .email-panel {
-        align-items: center;
-        display: flex;
-        padding: 48px 6vw;
-      }
-
-      .question-wrap,
-      .email-wrap {
-        margin: 0 auto;
-        max-width: 780px;
-        width: 100%;
-      }
-
-      .question-count {
+      .q-count {
         color: var(--rust-deep);
         font-size: 12px;
         font-weight: 700;
-        margin: 0 0 22px;
-        text-transform: uppercase;
-      }
-
-      .question-wrap h1,
-      .email-wrap h1 {
-        font-family: var(--serif);
-        font-size: 54px;
-        font-weight: 400;
-        line-height: 0.95;
+        letter-spacing: 0.02em;
         margin: 0;
-        max-width: 760px;
         text-transform: uppercase;
       }
 
-      .question-description,
-      .email-wrap > p {
-        color: #5d554e;
-        font-size: 16px;
-        line-height: 1.65;
-        margin: 20px 0 28px;
-        max-width: 610px;
+      .progress {
+        background: var(--sand);
+        height: 3px;
+        margin: 4px 0 clamp(18px, 10px + 2.4cqi, 30px);
+        overflow: hidden;
+      }
+
+      .progress span {
+        background: var(--rust);
+        display: block;
+        height: 100%;
       }
 
       .filter-note {
         border-left: 3px solid var(--rust);
-        color: #5d554e;
+        color: var(--muted);
         font-size: 12px;
         font-weight: 700;
+        letter-spacing: 0.02em;
         line-height: 1.5;
-        margin: 0 0 24px;
-        max-width: 600px;
-        padding: 11px 14px;
+        margin: clamp(14px, 8px + 1.6cqi, 22px) 0 0;
+        max-width: 60ch;
+        padding: 10px 14px;
         text-transform: uppercase;
       }
 
-      .answer-grid {
+      .answer-hint {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        margin: clamp(18px, 10px + 2cqi, 26px) 0 10px;
+        text-transform: uppercase;
+      }
+
+      .answers {
         display: grid;
         gap: 10px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
       }
 
-      .answer-option {
+      @container quiz (min-width: 560px) {
+        .answers {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .answer {
+        align-content: start;
+        align-items: start;
         background: var(--cream-strong);
         border: 1px solid var(--line-dark);
+        border-radius: 0;
         color: var(--ink);
-        min-height: 118px;
-        padding: 18px;
+        display: grid;
+        gap: 4px 12px;
+        grid-template-columns: auto minmax(0, 1fr);
+        min-height: 64px;
+        padding: clamp(14px, 10px + 1cqi, 18px);
         text-align: left;
-        transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
       }
 
-      .answer-option:hover {
+      .answer:hover {
         border-color: var(--rust);
-        transform: translateY(-1px);
       }
 
-      .answer-option.is-selected {
+      .answer-mark {
+        border: 1px solid var(--line-dark);
+        display: grid;
+        grid-row: span 2;
+        height: 20px;
+        margin-top: 1px;
+        place-items: center;
+        width: 20px;
+      }
+
+      .answer.is-single .answer-mark {
+        border-radius: 50%;
+      }
+
+      .answer-title {
+        font-family: var(--serif);
+        font-size: clamp(18px, 15px + 0.8cqi, 22px);
+        line-height: 1.05;
+        text-transform: uppercase;
+      }
+
+      .answer-desc {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .answer[aria-pressed="true"] {
         background: var(--ink);
         border-color: var(--ink);
         color: #fff;
       }
 
-      .answer-index {
-        color: var(--rust);
-        display: block;
-        font-size: 11px;
-        font-weight: 700;
-        margin-bottom: 12px;
-      }
-
-      .answer-option.is-selected .answer-index {
-        color: var(--sand);
-      }
-
-      .answer-title {
-        display: block;
-        font-family: var(--serif);
-        font-size: 22px;
-        font-weight: 400;
-        line-height: 1;
-        text-transform: uppercase;
-      }
-
-      .answer-description {
-        color: #5d554e;
-        display: block;
-        font-size: 12px;
-        line-height: 1.45;
-        margin-top: 8px;
-      }
-
-      .answer-option.is-selected .answer-description {
+      .answer[aria-pressed="true"] .answer-desc {
         color: rgba(255, 255, 255, 0.76);
       }
 
-      .question-actions {
-        align-items: center;
+      .answer[aria-pressed="true"] .answer-mark {
+        background: var(--rust);
+        border-color: var(--rust);
+      }
+
+      .answer[aria-pressed="true"] .answer-mark::after {
+        border-bottom: 2px solid #fff;
+        border-right: 2px solid #fff;
+        content: "";
+        height: 9px;
+        margin-top: -2px;
+        transform: rotate(45deg);
+        width: 5px;
+      }
+
+      .q-actions {
+        align-items: stretch;
         display: flex;
-        justify-content: space-between;
-        margin-top: 28px;
+        flex-direction: column-reverse;
+        gap: 6px;
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
       }
 
-      .question-actions .button-text {
-        color: #5d554e;
+      .q-actions .btn {
+        width: 100%;
       }
 
-      .question-actions .button-text:hover {
-        color: var(--rust-deep);
+      @container quiz (min-width: 460px) {
+        .q-actions {
+          align-items: center;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+
+        .q-actions .btn {
+          margin-left: auto;
+          width: auto;
+        }
       }
 
-      .email-panel {
-        background: var(--cream-strong);
+      /* ---- Email ---- */
+      .email-wrap {
+        max-width: 720px;
       }
 
       .email-form {
-        margin-top: 32px;
-        max-width: 590px;
+        margin-top: clamp(20px, 12px + 2cqi, 30px);
       }
 
       .field-label {
         display: block;
         font-size: 12px;
         font-weight: 700;
-        margin-bottom: 10px;
+        letter-spacing: 0.02em;
+        margin-bottom: 8px;
         text-transform: uppercase;
       }
 
-      .email-form input[type="email"] {
+      .email-input {
         background: #fff;
         border: 1px solid var(--line-dark);
         border-radius: 0;
         color: var(--ink);
         font-size: 17px;
-        min-height: 56px;
-        padding: 14px 16px;
+        min-height: 54px;
+        padding: 12px 14px;
         width: 100%;
       }
 
-      .email-form input[type="email"]:focus {
+      .email-input:focus {
         border-color: var(--rust);
-        outline: 2px solid rgba(167, 100, 37, 0.2);
-        outline-offset: 2px;
       }
 
-      .consent-label {
+      .consent {
         align-items: flex-start;
-        color: #5d554e;
+        color: var(--muted);
+        cursor: pointer;
         display: flex;
         font-size: 13px;
-        gap: 10px;
+        gap: 12px;
         line-height: 1.55;
-        margin: 18px 0 24px;
+        margin: 14px 0 6px;
+        min-height: 44px;
+        padding: 6px 0;
       }
 
-      .consent-label input {
+      .consent input {
         accent-color: var(--rust);
         flex: 0 0 auto;
-        height: 17px;
-        margin: 2px 0 0;
-        width: 17px;
+        height: 20px;
+        margin: 1px 0 0;
+        width: 20px;
       }
 
       .form-error {
@@ -387,346 +521,262 @@
         font-size: 13px;
         font-weight: 700;
         line-height: 1.45;
-        margin: 0 0 16px;
+        margin: 0;
         min-height: 0;
       }
 
-      .prototype-notice {
-        border-top: 1px solid var(--line-dark);
-        color: #5d554e;
-        font-size: 11px;
-        line-height: 1.5;
-        margin-top: 28px;
-        padding-top: 16px;
-        text-transform: uppercase;
+      .form-error:empty {
+        display: none;
       }
 
-      .results-view {
-        background: var(--cream);
+      @container quiz (min-width: 560px) {
+        .email-row {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .email-row .field-label {
+          grid-column: 1 / -1;
+          margin-bottom: 0;
+        }
       }
 
-      .results-hero {
-        align-items: flex-end;
-        background-color: #5c4736;
-        background-image:
-          linear-gradient(90deg, rgba(18, 16, 14, 0.8) 0%, rgba(18, 16, 14, 0.49) 50%, rgba(18, 16, 14, 0.12) 100%),
-          var(--result-image);
-        background-position: center;
-        background-size: cover;
-        color: #fff;
-        display: flex;
-        min-height: 420px;
-        padding: 48px 42px;
+      .email-submit {
+        margin-top: 8px;
+        width: 100%;
       }
 
-      .results-hero-content {
-        max-width: 700px;
+      @container quiz (min-width: 560px) {
+        .email-submit {
+          width: auto;
+        }
       }
 
-      .results-hero h1 {
-        font-size: 76px;
-        max-width: 740px;
-      }
-
-      .result-intro {
-        font-size: 17px;
-        line-height: 1.62;
-        margin: 24px 0 0;
-        max-width: 600px;
-      }
-
+      /* ---- Results ---- */
       .match-tags {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 25px;
+        gap: 6px;
+        margin-top: clamp(14px, 8px + 1.6cqi, 20px);
+      }
+
+      .match-tags:empty {
+        display: none;
       }
 
       .match-tag {
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        color: #fff;
+        border: 1px solid var(--rust);
+        color: var(--rust-deep);
         font-size: 11px;
         font-weight: 700;
-        padding: 8px 10px;
+        letter-spacing: 0.03em;
+        line-height: 1.3;
+        padding: 6px 9px;
         text-transform: uppercase;
       }
 
       .result-disclaimer {
-        background: #d9c0a8;
+        background: #e7d6c4;
+        border-left: 3px solid var(--rust);
         color: var(--ink);
         font-size: 14px;
         line-height: 1.55;
-        padding: 18px 42px;
+        margin-top: clamp(14px, 8px + 1.6cqi, 20px);
+        padding: 12px 14px;
       }
 
-      .result-actions {
-        background: var(--cream-strong);
-        border-bottom: 1px solid var(--line-dark);
-        display: flex;
-        gap: 12px;
-        padding: 22px 42px;
+      .runners {
+        border-top: 1px solid var(--line-dark);
+        padding: var(--pad);
       }
 
-      .result-actions .button-secondary {
-        color: var(--ink);
-      }
-
-      .result-actions .button-secondary:hover {
-        background: var(--cream);
-      }
-
-      .runners-section {
-        margin: 0 auto;
-        max-width: 1440px;
-        padding: 56px 42px 76px;
-      }
-
-      .section-kicker {
-        color: var(--rust-deep);
-        font-size: 12px;
-        font-weight: 700;
-        margin: 0 0 12px;
-        text-transform: uppercase;
-      }
-
-      .runners-heading {
-        font-family: var(--serif);
-        font-size: 52px;
-        font-weight: 400;
-        line-height: 0.95;
-        margin: 0 0 34px;
-        text-transform: uppercase;
+      .runners .display-m {
+        margin-bottom: clamp(18px, 10px + 2.4cqi, 30px);
       }
 
       .runner-grid {
         display: grid;
-        gap: 0;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .runner {
-        border-left: 1px solid var(--line-dark);
-        min-height: 235px;
-        padding: 24px 28px;
+        background: var(--cream-strong);
+        border: 1px solid var(--line-dark);
+        display: flex;
+        flex-direction: column;
       }
 
-      .runner:first-child {
-        border-left: 0;
+      .runner .photo {
+        aspect-ratio: 3 / 2;
       }
 
-      .runner-number {
+      .runner-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 16px 18px 18px;
+      }
+
+      .runner-label {
         color: var(--rust);
-        display: block;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
-        margin-bottom: 34px;
+        letter-spacing: 0.03em;
+        margin: 0 0 8px;
         text-transform: uppercase;
       }
 
       .runner h3 {
         font-family: var(--serif);
-        font-size: 33px;
+        font-size: clamp(22px, 18px + 0.8cqi, 28px);
         font-weight: 400;
-        line-height: 0.94;
+        line-height: 1;
         margin: 0;
         text-transform: uppercase;
       }
 
-      .runner p {
-        color: #5d554e;
+      .runner p:not(.runner-label) {
+        color: var(--muted);
         font-size: 13px;
-        line-height: 1.58;
-        margin: 14px 0 0;
+        line-height: 1.55;
+        margin: 10px 0 0;
       }
 
-      .runner a {
+      .runner .btn-text {
+        align-self: flex-start;
         color: var(--rust-deep);
-        display: inline-block;
         font-size: 11px;
-        font-weight: 700;
-        margin-top: 19px;
-        text-decoration: underline;
-        text-underline-offset: 4px;
-        text-transform: uppercase;
+        margin-top: auto;
+        padding-top: 8px;
       }
 
       .empty-runners {
         border-top: 1px solid var(--line-dark);
-        color: #5d554e;
+        color: var(--muted);
         font-size: 15px;
         line-height: 1.6;
-        padding-top: 22px;
+        margin: 0;
+        padding-top: 18px;
       }
 
-      @media (max-width: 980px) {
-        .question-panel,
-        .email-panel {
-          padding: 40px 24px 48px;
-        }
-      }
-
-      @media (max-width: 700px) {
-        .intro-hero {
-          background-position: 62% center;
-        }
-
-        .intro-content {
-          min-height: 360px;
-          padding: 40px 20px 36px;
-        }
-
-        .intro-content h1,
-        .results-hero h1 {
-          font-size: 47px;
-          line-height: 0.94;
-        }
-
-        .intro-content p:not(.kicker) {
-          font-size: 15px;
-          margin: 22px 0 24px;
-        }
-
-        .question-panel,
-        .email-panel {
-          padding: 32px 20px 40px;
-        }
-
-        .question-wrap h1,
-        .email-wrap h1 {
-          font-size: 40px;
-        }
-
-        .question-description,
-        .email-wrap > p {
-          font-size: 15px;
-        }
-
-        .answer-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .answer-option {
-          min-height: 106px;
-        }
-
-        .question-actions,
-        .result-actions {
-          align-items: stretch;
-          flex-direction: column;
-        }
-
-        .question-actions {
-          gap: 16px;
-        }
-
-        .question-actions .button-primary,
-        .result-actions .button-primary,
-        .result-actions .button-secondary {
-          width: 100%;
-        }
-
-        .results-hero {
-          background-position: 60% center;
-          min-height: 360px;
-          padding: 36px 20px;
-        }
-
-        .result-intro {
-          font-size: 15px;
-        }
-
-        .result-disclaimer,
-        .result-actions,
-        .runners-section {
-          padding-left: 20px;
-          padding-right: 20px;
-        }
-
-        .runners-heading {
-          font-size: 41px;
-        }
-
-        .runner-grid {
-          grid-template-columns: 1fr;
-        }
-
+      /* Narrow and medium cards: runners are compact horizontal rows (thumbnail beside text). */
+      @container quiz (max-width: 759.98px) {
         .runner {
-          border-left: 0;
-          border-top: 1px solid var(--line-dark);
-          min-height: 0;
-          padding: 24px 0;
+          display: grid;
+          grid-template-columns: 104px minmax(0, 1fr);
         }
 
-        .runner:first-child {
-          border-top: 0;
-          padding-top: 0;
+        .runner .photo {
+          aspect-ratio: auto;
+          height: 100%;
+          min-height: 120px;
+        }
+
+        .runner-body {
+          padding: 14px 14px 12px;
+        }
+      }
+
+      @container quiz (min-width: 460px) and (max-width: 759.98px) {
+        .runner {
+          grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        }
+
+        .runner .photo {
+          min-height: 160px;
+        }
+
+        .runner-body {
+          padding: 16px 18px 14px;
+        }
+      }
+
+      /* Wide card: three across. */
+      @container quiz (min-width: 760px) {
+        .runner-grid {
+          gap: 16px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
     </style>
   </head>
   <body>
     <!-- Embeddable build: no site header/footer; the Squarespace host page supplies both around this iframe. -->
-    <main id="app">
-      <section class="view is-active" data-view="intro">
-        <div class="intro-hero">
-          <div class="intro-content">
-            <h1>Which Orlando wedding venue fits your day?</h1>
-            <p>
+    <main class="quiz" id="app">
+      <section class="screen is-active" data-view="intro" aria-labelledby="intro-title">
+        <div class="hero">
+          <figure class="photo" data-label="Venue photo">
+            <img
+              src="https://images.squarespace-cdn.com/content/v1/6489e0c2db9f9b048826c210/71b8a690-3b39-43af-86c4-56e034c72136/IMG_5696.jpg?format=1500w"
+              alt="A couple at an Orlando wedding venue"
+              loading="eager"
+            />
+          </figure>
+          <div class="hero-body">
+            <h1 class="display display-xl" id="intro-title">Which Orlando wedding venue fits your day?</h1>
+            <p class="lede">
               A few questions. A (hopefully) perfect match. Based on our database of Orlando’s top wedding venues, lovingly researched by hand, narrow down your search to a best-fit venue for your day—and a few more worth considering.
             </p>
-            <button class="button-primary" type="button" data-action="start">Find My Venue Match</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="view quiz-view" data-view="quiz" aria-live="polite">
-        <section class="question-panel">
-          <div class="question-wrap" id="question-root"></div>
-        </section>
-      </section>
-
-      <section class="view email-view" data-view="email">
-        <section class="email-panel">
-          <div class="email-wrap">
-            <div class="quiz-meta-row">
-              <p class="question-count">Your results are ready</p>
-              <button type="button" class="button-text" data-action="restart">Start Over</button>
+            <div class="actions">
+              <button class="btn btn-primary" type="button" data-action="start">Find My Venue Match</button>
             </div>
-            <h1>Where should we send your venue match?</h1>
-            <p>Your results are here! Enter your email to reveal your venue matches.</p>
-            <form class="email-form" id="email-form" novalidate>
-              <label class="field-label" for="email">Email Address</label>
-              <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
-              <label class="consent-label" for="consent">
-                <input id="consent" name="consent" type="checkbox" required />
-                <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
-              </label>
-              <p class="form-error" id="form-error" role="alert"></p>
-              <button class="button-primary" type="submit">Show My Matches</button>
-            </form>
           </div>
-        </section>
+        </div>
       </section>
 
-      <section class="view results-view" data-view="results" aria-live="polite">
-        <section class="results-hero" id="results-hero">
-          <div class="results-hero-content">
-            <p class="kicker" id="result-kicker">Your top venue match</p>
-            <h1 id="result-title">Leu Gardens</h1>
-            <p class="result-intro" id="result-summary"></p>
-            <div class="match-tags" id="match-tags"></div>
+      <section class="screen" data-view="quiz" aria-live="polite">
+        <div class="q-wrap" id="question-root"></div>
+      </section>
+
+      <section class="screen" data-view="email" aria-labelledby="email-title">
+        <div class="email-wrap">
+          <div class="q-meta">
+            <p class="q-count">Your results are ready</p>
+            <button type="button" class="btn-text" data-action="restart">Start Over</button>
           </div>
-        </section>
-        <div class="result-disclaimer" id="result-disclaimer" hidden></div>
-        <div class="result-actions">
-          <a class="button-primary" id="result-link" href="#" target="_blank" rel="noreferrer">Read The Venue Review</a>
-          <button class="button-secondary" type="button" data-action="restart">Retake With Different Priorities</button>
+          <div class="progress" aria-hidden="true"><span style="width: 100%"></span></div>
+          <h1 class="display display-l" id="email-title">Where should we send your venue match?</h1>
+          <p class="lede">Your results are here! Enter your email to reveal your venue matches.</p>
+          <form class="email-form" id="email-form" novalidate>
+            <div class="email-row">
+              <label class="field-label" for="email">Email Address</label>
+              <input class="email-input" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+            </div>
+            <label class="consent" for="consent">
+              <input id="consent" name="consent" type="checkbox" required />
+              <span>I would like Author Made planning emails and venue recommendations. I understand that I can unsubscribe at any time.</span>
+            </label>
+            <p class="form-error" id="form-error" role="alert"></p>
+            <button class="btn btn-primary email-submit" type="submit">Show My Matches</button>
+          </form>
         </div>
-        <section class="runners-section">
-          <p class="section-kicker" id="runners-kicker">We think you'll love these, too</p>
-          <h2 class="runners-heading" id="runners-heading">Your runners-up</h2>
+      </section>
+
+      <section class="screen" data-view="results" aria-live="polite" aria-labelledby="result-title">
+        <div class="hero">
+          <figure class="photo" id="result-photo" data-label="Venue photo">
+            <img id="result-image" alt="" loading="lazy" hidden />
+          </figure>
+          <div class="hero-body">
+            <p class="kicker" id="result-kicker">Your top venue match</p>
+            <h1 class="display display-xl" id="result-title">Leu Gardens</h1>
+            <p class="lede" id="result-summary"></p>
+            <div class="match-tags" id="match-tags"></div>
+            <div class="result-disclaimer" id="result-disclaimer" hidden></div>
+            <div class="actions">
+              <a class="btn btn-primary" id="result-link" href="#" target="_blank" rel="noreferrer">Read The Venue Review</a>
+              <button class="btn btn-secondary" type="button" data-action="restart">Retake With Different Priorities</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="runners">
+          <p class="kicker" id="runners-kicker">We think you'll love these, too</p>
+          <h2 class="display display-m" id="runners-heading">Your runners-up</h2>
           <div class="runner-grid" id="runner-grid"></div>
-        </section>
+        </div>
       </section>
     </main>
 
@@ -902,14 +952,43 @@
         email: ""
       };
 
+      const app = document.getElementById("app");
       const views = document.querySelectorAll("[data-view]");
       const questionRoot = document.getElementById("question-root");
+      const isEmbedded = window.parent !== window;
+
+      // Brings the top of the quiz card into view after every screen/question change. When iframed, the
+      // Squarespace page owns the scroll position, so ask it (the Code Block listener handles "quiz-scroll-top").
+      function scrollToQuizTop() {
+        if (isEmbedded) {
+          window.parent.postMessage({ type: "quiz-scroll-top" }, "*");
+          return;
+        }
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
 
       function showView(viewName) {
         views.forEach((view) => {
           view.classList.toggle("is-active", view.dataset.view === viewName);
         });
-        window.scrollTo({ top: 0, behavior: "instant" });
+        scrollToQuizTop();
+      }
+
+      // A failed photo keeps its neutral box (and aspect ratio) instead of showing a broken-image glyph.
+      // Capture phase, because image "error" events do not bubble; this also covers rendered runner thumbnails.
+      app.addEventListener(
+        "error",
+        (event) => {
+          const photo = event.target instanceof HTMLImageElement ? event.target.closest(".photo") : null;
+          if (photo) {
+            photo.classList.add("is-missing");
+          }
+        },
+        true
+      );
+
+      function escapeAttribute(value) {
+        return String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
       }
 
       function isSelected(question, value) {
@@ -922,40 +1001,46 @@
         return question.multiple ? Array.isArray(answer) && answer.length > 0 : Boolean(answer);
       }
 
-      function renderQuestion() {
+      function renderQuestion(focusValue) {
         const question = questions[state.currentQuestion];
         const isLast = state.currentQuestion === questions.length - 1;
         const answerLabel = question.multiple ? "Select all that apply" : "Choose one answer";
+        const number = state.currentQuestion + 1;
+        const progress = Math.round((number / questions.length) * 100);
 
         questionRoot.innerHTML = `
-          <div class="quiz-meta-row">
-            <p class="question-count">${String(state.currentQuestion + 1).padStart(2, "0")} / ${String(questions.length).padStart(2, "0")} - ${question.category}</p>
-            <button type="button" class="button-text" data-action="restart">Start Over</button>
+          <div class="q-meta">
+            <p class="q-count">${String(number).padStart(2, "0")} / ${String(questions.length).padStart(2, "0")} &middot; ${question.category}</p>
+            <button type="button" class="btn-text" data-action="restart">Start Over</button>
           </div>
-          <h1>${question.heading}</h1>
-          <p class="question-description">${question.description}</p>
+          <div class="progress" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="${questions.length}" aria-valuenow="${number}">
+            <span style="width: ${progress}%"></span>
+          </div>
+          <h1 class="display display-l" id="question-title">${question.heading}</h1>
+          <p class="lede">${question.description}</p>
           ${question.note ? `<p class="filter-note">${question.note}</p>` : ""}
-          <div class="answer-grid" role="group" aria-label="${answerLabel}">
+          <p class="answer-hint" id="answer-hint">${answerLabel}</p>
+          <div class="answers" role="group" aria-labelledby="answer-hint">
             ${question.options
               .map(
-                (option, index) => `
+                (option) => `
                   <button
-                    class="answer-option${isSelected(question, option.value) ? " is-selected" : ""}"
+                    class="answer${question.multiple ? "" : " is-single"}"
                     type="button"
                     data-answer="${option.value}"
                     aria-pressed="${isSelected(question, option.value)}"
                   >
-                    <span class="answer-index">${String(index + 1).padStart(2, "0")}</span>
+                    <span class="answer-mark" aria-hidden="true"></span>
                     <span class="answer-title">${option.title}</span>
-                    <span class="answer-description">${option.description}</span>
+                    <span class="answer-desc">${option.description}</span>
                   </button>
                 `
               )
               .join("")}
           </div>
-          <div class="question-actions">
-            <button class="button-text" type="button" data-action="previous" ${state.currentQuestion === 0 ? "hidden" : ""}>&larr; Previous Question</button>
-            <button class="button-primary" type="button" data-action="next" ${isQuestionComplete(question) ? "" : "disabled"}>
+          <div class="q-actions">
+            <button class="btn-text" type="button" data-action="previous" ${state.currentQuestion === 0 ? "hidden" : ""}>&larr; Previous Question</button>
+            <button class="btn btn-primary" type="button" data-action="next" ${isQuestionComplete(question) ? "" : "disabled"}>
               ${isLast ? "See My Result" : "Next Question"}
             </button>
           </div>
@@ -966,6 +1051,14 @@
             selectAnswer(question, button.dataset.answer);
           });
         });
+
+        // Re-rendering replaces the buttons, so keep keyboard focus on the option that was just toggled.
+        if (focusValue) {
+          const focusTarget = questionRoot.querySelector(`[data-answer="${focusValue}"]`);
+          if (focusTarget) {
+            focusTarget.focus({ preventScroll: true });
+          }
+        }
 
         const previousButton = questionRoot.querySelector('[data-action="previous"]');
         if (previousButton) {
@@ -989,7 +1082,7 @@
         } else {
           state.answers[question.id] = value;
         }
-        renderQuestion();
+        renderQuestion(value);
       }
 
       function nextQuestion() {
@@ -1003,6 +1096,7 @@
         }
         state.currentQuestion += 1;
         renderQuestion();
+        scrollToQuizTop();
       }
 
       function previousQuestion() {
@@ -1011,6 +1105,7 @@
         }
         state.currentQuestion -= 1;
         renderQuestion();
+        scrollToQuizTop();
       }
 
       function selectedGuestMinimum() {
@@ -1062,7 +1157,8 @@
 
       function renderResults(result) {
         const { topVenue, runnersUp, tags, disclaimer, resultMode } = result;
-        const resultHero = document.getElementById("results-hero");
+        const resultPhoto = document.getElementById("result-photo");
+        const resultImage = document.getElementById("result-image");
         const resultKicker = document.getElementById("result-kicker");
         const resultTitle = document.getElementById("result-title");
         const resultSummary = document.getElementById("result-summary");
@@ -1074,7 +1170,11 @@
         const runnerGrid = document.getElementById("runner-grid");
 
         const heroImage = topVenue.heroImageUrl || fallbackImageFor(topVenue.id);
-        resultHero.style.setProperty("--result-image", `url("${heroImage}")`);
+        resultPhoto.classList.remove("is-missing");
+        resultPhoto.dataset.label = `${topVenue.name} photo`;
+        resultImage.alt = topVenue.name;
+        resultImage.src = heroImage;
+        resultImage.hidden = false;
         resultKicker.textContent = resultMode === "closest" ? "Your closest venue match" : "Your top venue match";
         resultTitle.textContent = topVenue.name;
         resultSummary.textContent = topVenue.summary;
@@ -1098,10 +1198,15 @@
             .map(
               (venue, index) => `
                 <article class="runner">
-                  <span class="runner-number">Runner-up ${index + 1}</span>
-                  <h3>${venue.name}</h3>
-                  <p>${venue.city ? `Located in ${venue.city}. ` : ""}${venue.note || ""}</p>
-                  <a href="${venue.url || "#"}" target="_blank" rel="noreferrer">Read the venue review</a>
+                  <figure class="photo" data-label="${escapeAttribute(venue.name)} photo">
+                    <img src="${escapeAttribute(fallbackImageFor(venue.id))}" alt="${escapeAttribute(venue.name)}" loading="lazy" />
+                  </figure>
+                  <div class="runner-body">
+                    <p class="runner-label">Runner-up ${index + 1}</p>
+                    <h3>${venue.name}</h3>
+                    <p>${venue.city ? `Located in ${venue.city}. ` : ""}${venue.note || ""}</p>
+                    <a class="btn-text" href="${venue.url || "#"}" target="_blank" rel="noreferrer">Read the venue review</a>
+                  </div>
                 </article>
               `
             )
@@ -1181,19 +1286,19 @@
       });
 
       // Lets the Squarespace host page auto-size the iframe instead of showing an internal scrollbar.
-      // Measures #app's own box, not document.documentElement.scrollHeight: scrollHeight can't report
-      // smaller than the iframe's current height when content doesn't overflow, so it never shrinks.
+      // Measures the card's (#app's) own box, not document.documentElement.scrollHeight: scrollHeight can't
+      // report smaller than the iframe's current height when content doesn't overflow, so it never shrinks.
       function reportHeightToParent() {
-        if (window.parent === window) {
+        if (!isEmbedded) {
           return;
         }
-        const height = document.getElementById("app").getBoundingClientRect().height;
+        const height = app.getBoundingClientRect().height;
         window.parent.postMessage({ type: "quiz-resize", height: Math.ceil(height) }, "*");
       }
 
       window.addEventListener("load", reportHeightToParent);
       window.addEventListener("resize", reportHeightToParent);
-      new ResizeObserver(reportHeightToParent).observe(document.body);
+      new ResizeObserver(reportHeightToParent).observe(app);
     </script>
   </body>
 </html>
