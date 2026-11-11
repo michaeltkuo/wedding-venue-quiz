@@ -92,6 +92,9 @@ function isAllInclusiveVenue(venue: VenueRow): boolean {
 function allowsOutsideVendors(venue: VenueRow): boolean {
   const text = (venue.outside_vendors ?? "").toLowerCase();
   if (!text || text.includes("not stated")) return false;
+  // The sheet's "Outside Catering Allowed?" column is a plain Yes/No.
+  if (/^no\.?$/.test(text)) return false;
+  if (/^yes\.?$/.test(text)) return true;
   if (text.includes("restricted") || text.includes("must use") || text.includes("approved list")) return false;
   return true;
 }
