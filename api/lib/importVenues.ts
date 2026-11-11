@@ -61,6 +61,31 @@ const SETTING_COLUMNS = {
   outdoor: ["Outdoor Ceremony", "Outdoor Reception"],
 } as const;
 
+// "Yes (intimate weddings only)" has no number; Michael confirmed it means under 60 guests.
+const INTIMATE_GUEST_LIMIT = 60;
+
+const INDOOR_CEREMONY_HEADER = SETTING_COLUMNS.indoor[0];
+const INDOOR_RECEPTION_HEADER = SETTING_COLUMNS.indoor[1];
+const OUTDOOR_CEREMONY_HEADER = SETTING_COLUMNS.outdoor[0];
+const OUTDOOR_RECEPTION_HEADER = SETTING_COLUMNS.outdoor[1];
+
+function placeState(row: CsvRow, header: string, legacyHeader: string): TriState {
+  const hasNewColumns = [...SETTING_COLUMNS.indoor, ...SETTING_COLUMNS.outdoor].some((h) => row[h] !== undefined);
+  if (!hasNewColumns) return normalizeTriState(row[legacyHeader]);
+  const text = (row[header] ?? "").trim();
+  if (/^yes\s*\(/i.test(text)) return "partial";
+  return normalizeTriState(text);
+}
+
+// Largest guest count a conditional indoor reception supports, or null when it is unconditional.
+function receptionGuestLimit(raw: string | undefined): number | null {
+  const text = (raw ?? "").trim();
+  if (!/^yes\s*\(/i.test(text)) return null;
+  const count = text.match(/\d+/);
+  if (count) return Number(count[0]);
+  return /intimate/i.test(text) ? INTIMATE_GUEST_LIMIT : null;
+}
+
 function settingSupport(row: CsvRow, kind: "indoor" | "outdoor"): TriState {
   const legacy = row[kind === "indoor" ? "Indoor" : "Outdoor"];
   if (legacy !== undefined && !(kind === "indoor" ? SETTING_COLUMNS.indoor : SETTING_COLUMNS.outdoor).some((h) => row[h] !== undefined)) {
@@ -112,6 +137,11 @@ export function parseVenueCsv(csvText: string): ImportResult {
       capacity_max: capacity.max,
       indoor_support: settingSupport(row, "indoor"),
       outdoor_support: settingSupport(row, "outdoor"),
+      indoor_ceremony: placeState(row, INDOOR_CEREMONY_HEADER, "Indoor"),
+      outdoor_ceremony: placeState(row, OUTDOOR_CEREMONY_HEADER, "Outdoor"),
+      indoor_reception: placeState(row, INDOOR_RECEPTION_HEADER, "Indoor"),
+      outdoor_reception: placeState(row, OUTDOOR_RECEPTION_HEADER, "Outdoor"),
+      indoor_reception_max_guests: receptionGuestLimit(row[INDOOR_RECEPTION_HEADER]),
       primary_vibe: row["Primary Style / Vibe"]?.trim() || null,
       micro_wedding_fit: normalizeBoolean(row["Micro-Wedding Fit"]),
       garden_flag: /garden|botanical/.test(styleText(row)),

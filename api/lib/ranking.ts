@@ -62,12 +62,31 @@ function matchesFormat(venue: VenueRow, formatAnswer: string | undefined): boole
   return false;
 }
 
-function settingScore(venue: VenueRow, settingAnswer: string | undefined): number {
+// An indoor reception that the sheet limits to a guest count ("Yes (70 guests or less)") only fits
+// couples whose guest count is within that limit.
+function indoorReceptionFits(venue: VenueRow, guestMinimum: number): boolean {
+  if (venue.indoor_reception === "yes") return true;
+  if (venue.indoor_reception === "partial") {
+    return venue.indoor_reception_max_guests !== null && guestMinimum <= venue.indoor_reception_max_guests;
+  }
+  return false;
+}
+
+// Q5 is a hard filter on the ceremony/reception columns:
+//   outdoor = outdoor ceremony AND outdoor reception (covered open-air counts as outdoor in the sheet)
+//   indoor  = indoor ceremony AND indoor reception
+//   both    = outdoor ceremony AND indoor reception
+export function matchesSetting(venue: VenueRow, settingAnswer: string | undefined, guestMinimum: number): boolean {
+  if (!settingAnswer || settingAnswer === "open") return true;
+  if (settingAnswer === "outdoor") return venue.outdoor_ceremony === "yes" && venue.outdoor_reception === "yes";
+  if (settingAnswer === "indoor") return venue.indoor_ceremony === "yes" && indoorReceptionFits(venue, guestMinimum);
+  if (settingAnswer === "both") return venue.outdoor_ceremony === "yes" && indoorReceptionFits(venue, guestMinimum);
+  return false;
+}
+
+function settingScore(venue: VenueRow, settingAnswer: string | undefined, guestMinimum: number): number {
   if (!settingAnswer || settingAnswer === "open") return 4;
-  if (settingAnswer === "outdoor" && venue.outdoor_support === "yes") return 15;
-  if (settingAnswer === "indoor" && venue.indoor_support === "yes") return 15;
-  if (settingAnswer === "both" && venue.outdoor_support === "yes" && venue.indoor_support !== "no") return 15;
-  return 0;
+  return matchesSetting(venue, settingAnswer, guestMinimum) ? 15 : 0;
 }
 
 function locationScore(venue: VenueRow, locationAnswer: string | undefined): number {
@@ -129,7 +148,7 @@ export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
   let score = 0;
   if (matchesVibe(venue, answers.vibe)) score += 30;
   if (matchesFormat(venue, answers.format)) score += 15;
-  score += settingScore(venue, answers.setting);
+  score += settingScore(venue, answers.setting, answers.guestMinimum ?? 0);
   score += locationScore(venue, answers.location);
   score += microScore(venue, answers.micro);
   score += perksScore(venue, answers.perks ?? []);
@@ -142,7 +161,8 @@ function closestPenalty(venue: VenueRow, answers: QuizAnswers): number {
   const guestMinimum = answers.guestMinimum ?? 0;
   const budgetPenalty = matchesBudget(venue, answers.budget) ? 0 : 100;
   const capacityPenalty = matchesGuestCount(venue, guestMinimum) ? 0 : guestMinimum - (venue.capacity_max ?? 0);
-  return budgetPenalty + capacityPenalty;
+  const settingPenalty = matchesSetting(venue, answers.setting, guestMinimum) ? 0 : 50;
+  return budgetPenalty + capacityPenalty + settingPenalty;
 }
 
 export interface RankResult {
@@ -155,7 +175,12 @@ export function rankVenues(venues: VenueRow[], answers: QuizAnswers): RankResult
   const guestMinimum = answers.guestMinimum ?? 0;
 
   const exactMatches: RankedVenue[] = eligible
-    .filter((venue) => matchesBudget(venue, answers.budget) && matchesGuestCount(venue, guestMinimum))
+    .filter(
+      (venue) =>
+        matchesBudget(venue, answers.budget) &&
+        matchesGuestCount(venue, guestMinimum) &&
+        matchesSetting(venue, answers.setting, guestMinimum)
+    )
     .map((venue) => ({ ...venue, score: scoreVenue(venue, answers) }))
     .sort((a, b) => b.score - a.score || (b.capacity_max ?? 0) - (a.capacity_max ?? 0));
 
@@ -182,12 +207,11 @@ export function buildSummary(venue: RankedVenue, answers: QuizAnswers): string {
   if (matchesVibe(venue, answers.vibe)) {
     reasons.push(`the ${stylePhrase(answers.vibe)} you selected`);
   }
-  if (answers.setting === "both" && venue.outdoor_support === "yes" && venue.indoor_support !== "no") {
-    reasons.push("outdoor beauty with a real indoor option");
-  } else if (answers.setting === "outdoor" && venue.outdoor_support === "yes") {
-    reasons.push("an outdoor-focused experience");
-  } else if (answers.setting === "indoor" && venue.indoor_support === "yes") {
-    reasons.push("a strong indoor event space");
+  const guestMinimum = answers.guestMinimum ?? 0;
+  if (matchesSetting(venue, answers.setting, guestMinimum)) {
+    if (answers.setting === "both") reasons.push("an outdoor ceremony with an indoor reception");
+    else if (answers.setting === "outdoor") reasons.push("a ceremony and reception held outdoors");
+    else if (answers.setting === "indoor") reasons.push("a climate-controlled indoor ceremony and reception");
   }
   if (answers.micro === "yes" && venue.micro_wedding_fit) {
     reasons.push("a genuine micro-wedding fit");

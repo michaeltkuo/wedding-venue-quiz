@@ -15,6 +15,13 @@ export type VenueRow = {
   capacity_max: number | null;
   indoor_support: TriState | null;
   outdoor_support: TriState | null;
+  // Separate ceremony/reception columns from the 10.26.2026 sheet. "partial" on indoor_reception means
+  // the sheet limits the indoor space to a guest count (see indoor_reception_max_guests).
+  indoor_ceremony: TriState | null;
+  outdoor_ceremony: TriState | null;
+  indoor_reception: TriState | null;
+  outdoor_reception: TriState | null;
+  indoor_reception_max_guests: number | null;
   primary_vibe: string | null;
   micro_wedding_fit: boolean;
   garden_flag: boolean;

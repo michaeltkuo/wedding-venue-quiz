@@ -76,9 +76,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const disclaimer =
     result.mode === "closest"
-      ? "Your budget and guest-count filters did not produce an exact venue match in the launch-ready database. These are the closest venues to tour while you decide which must-have has the most flexibility."
+      ? "Your budget, guest-count, and setting filters did not produce an exact venue match in the launch-ready database. These are the closest venues to tour while you decide which must-have has the most flexibility."
       : result.mode === "narrow"
-        ? "Your hard filters produced a very focused shortlist. The venues below are the matches that currently meet the budget and guest-count requirements you selected."
+        ? "Your hard filters produced a very focused shortlist. The venues below are the matches that currently meet the budget, guest-count, and setting requirements you selected."
         : null;
 
   return res.status(200).json({

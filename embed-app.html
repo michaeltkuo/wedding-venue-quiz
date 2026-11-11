@@ -816,6 +816,7 @@
           description: "Assuming the weather cooperates, which setting is your ideal for your wedding day?",
           asideHeading: "The forecast is part of the plan.",
           asideDescription: "Outdoor beauty and a solid indoor option do not have to be competing priorities.",
+          hardFilter: true,
           options: [
             { value: "outdoor", title: "Primarily Outdoor", description: "I want ceremony and reception held outside, whether fully outdoors or covered open-air." },
             { value: "indoor", title: "Primarily Indoor", description: "A climate-controlled indoor setting for both ceremony and reception is ideal." },
@@ -1101,7 +1102,7 @@
         runnersHeading.textContent = runnersUp.length ? "Three more to see" : "Your venue match";
 
         if (!runnersUp.length) {
-          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count or budget filter to explore a broader shortlist.</p>';
+          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count, budget, or setting filter to explore a broader shortlist.</p>';
         } else {
           runnerGrid.innerHTML = runnersUp
             .map(
