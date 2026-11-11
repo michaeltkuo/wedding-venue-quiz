@@ -60,7 +60,8 @@ export interface QuizAnswers {
   format?: string;
   setting?: string;
   location?: string;
-  micro?: string;
+  // Q7 dealbreakers (multi-select): outsideCaterer, outdoorOnlyCeremony, longDrive, noAirConditionedReception, none.
+  dealbreakers?: string[];
   perks?: string[];
   planning?: string;
   priority?: string;

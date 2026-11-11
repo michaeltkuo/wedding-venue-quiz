@@ -89,9 +89,52 @@ function settingScore(venue: VenueRow, settingAnswer: string | undefined, guestM
   return matchesSetting(venue, settingAnswer, guestMinimum) ? 15 : 0;
 }
 
+// Q7 dealbreakers. A venue is only ruled out when the sheet clearly says it fails the dealbreaker;
+// blank or unclear data is never treated as a "No".
+// Cities far enough from Orlando to count as a long drive (Michael's list plus DeLand and Mims).
+const LONG_DRIVE_CITIES = new Set([
+  "daytona beach",
+  "port orange",
+  "st. augustine",
+  "gainesville",
+  "lake wales",
+  "webster",
+  "pierson",
+  "deland",
+  "mims",
+]);
+
+function violatesDealbreaker(venue: VenueRow, dealbreaker: string, guestMinimum: number): boolean {
+  switch (dealbreaker) {
+    case "outsideCaterer":
+      // "Outside Catering Allowed?" = No covers both required in-house and approved-caterer-list venues.
+      return /^no\.?$/i.test((venue.outside_vendors ?? "").trim());
+    case "outdoorOnlyCeremony":
+      return venue.indoor_ceremony === "no";
+    case "longDrive":
+      return LONG_DRIVE_CITIES.has((venue.city_area ?? "").trim().toLowerCase());
+    case "noAirConditionedReception":
+      // Reception only. A guest-limited indoor reception does not help a couple over the limit.
+      return venue.indoor_reception === "no" || (venue.indoor_reception === "partial" && !indoorReceptionFits(venue, guestMinimum));
+    default:
+      return false;
+  }
+}
+
+export function countDealbreakerViolations(venue: VenueRow, dealbreakers: string[] | undefined, guestMinimum: number): number {
+  return (dealbreakers ?? []).filter((item) => item !== "none" && violatesDealbreaker(venue, item, guestMinimum)).length;
+}
+
 function locationScore(venue: VenueRow, locationAnswer: string | undefined): number {
   if (!locationAnswer || locationAnswer === "open") return 10;
   return venue.region === locationAnswer ? 10 : 0;
+}
+
+// Q7 no longer asks about micro weddings; the guest-count bracket carries that signal. "Up To 50"
+// still favors venues flagged as a micro-wedding fit.
+function microPreference(answers: QuizAnswers): "yes" | "open" {
+  const guests = answers.guestMinimum ?? 0;
+  return guests > 0 && guests <= 50 ? "yes" : "open";
 }
 
 function microScore(venue: VenueRow, microAnswer: string | undefined): number {
@@ -150,7 +193,7 @@ export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
   if (matchesFormat(venue, answers.format)) score += 15;
   score += settingScore(venue, answers.setting, answers.guestMinimum ?? 0);
   score += locationScore(venue, answers.location);
-  score += microScore(venue, answers.micro);
+  score += microScore(venue, microPreference(answers));
   score += perksScore(venue, answers.perks ?? []);
   score += planningScore(venue, answers.planning);
   score += priorityScore(venue, answers.priority, answers.guestMinimum ?? 0);
@@ -162,7 +205,8 @@ function closestPenalty(venue: VenueRow, answers: QuizAnswers): number {
   const budgetPenalty = matchesBudget(venue, answers.budget) ? 0 : 100;
   const capacityPenalty = matchesGuestCount(venue, guestMinimum) ? 0 : guestMinimum - (venue.capacity_max ?? 0);
   const settingPenalty = matchesSetting(venue, answers.setting, guestMinimum) ? 0 : 50;
-  return budgetPenalty + capacityPenalty + settingPenalty;
+  const dealbreakerPenalty = countDealbreakerViolations(venue, answers.dealbreakers, guestMinimum) * 50;
+  return budgetPenalty + capacityPenalty + settingPenalty + dealbreakerPenalty;
 }
 
 export interface RankResult {
@@ -179,7 +223,8 @@ export function rankVenues(venues: VenueRow[], answers: QuizAnswers): RankResult
       (venue) =>
         matchesBudget(venue, answers.budget) &&
         matchesGuestCount(venue, guestMinimum) &&
-        matchesSetting(venue, answers.setting, guestMinimum)
+        matchesSetting(venue, answers.setting, guestMinimum) &&
+        countDealbreakerViolations(venue, answers.dealbreakers, guestMinimum) === 0
     )
     .map((venue) => ({ ...venue, score: scoreVenue(venue, answers) }))
     .sort((a, b) => b.score - a.score || (b.capacity_max ?? 0) - (a.capacity_max ?? 0));
@@ -213,7 +258,7 @@ export function buildSummary(venue: RankedVenue, answers: QuizAnswers): string {
     else if (answers.setting === "outdoor") reasons.push("a ceremony and reception held outdoors");
     else if (answers.setting === "indoor") reasons.push("a climate-controlled indoor ceremony and reception");
   }
-  if (answers.micro === "yes" && venue.micro_wedding_fit) {
+  if (microPreference(answers) === "yes" && venue.micro_wedding_fit) {
     reasons.push("a genuine micro-wedding fit");
   }
   if (perks.includes("lodging") && venue.overnight_accommodation === "yes") {
@@ -240,7 +285,7 @@ export function buildDisplayTags(venue: RankedVenue, answers: QuizAnswers): stri
   const labels: string[] = [];
   const perks = answers.perks ?? [];
   if (matchesVibe(venue, answers.vibe)) labels.push(stylePhrase(answers.vibe));
-  if (answers.micro === "yes" && venue.micro_wedding_fit) labels.push("micro wedding fit");
+  if (microPreference(answers) === "yes" && venue.micro_wedding_fit) labels.push("micro wedding fit");
   if (venue.weather_backup === "yes" && (answers.setting === "both" || perks.includes("weather"))) labels.push("weather backup");
   if (venue.overnight_accommodation === "yes" && perks.includes("lodging")) labels.push("overnight stay");
   if (isAllInclusiveVenue(venue) && (perks.includes("allInclusive") || answers.planning === "allInclusive")) labels.push("guided planning");

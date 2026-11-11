@@ -840,16 +840,21 @@
           ]
         },
         {
-          id: "micro",
-          category: "Your Scale",
-          heading: "Is a micro wedding part of the plan?",
-          description: "This helps surface venues that offer intimate packages or feel especially right for a smaller guest list.",
-          asideHeading: "Small can still feel like a full celebration.",
-          asideDescription: "A micro-wedding fit can mean more intentional details, lower minimums, or simply a space that does not feel oversized.",
+          id: "dealbreakers",
+          category: "Your Dealbreakers",
+          heading: "Are any of these a dealbreaker for your venue?",
+          description: "Select all that apply. If none of these would rule a venue out, choose None Of These.",
+          asideHeading: "Know what you can't work with.",
+          asideDescription: "A venue that matches your style but breaks a dealbreaker will not make your shortlist.",
+          multiple: true,
+          hardFilter: true,
+          exclusiveValue: "none",
           options: [
-            { value: "yes", title: "Yes, Definitely", description: "We are intentionally planning a small or micro celebration." },
-            { value: "no", title: "No, We Want More Room", description: "We do not need a venue optimized for an intimate event." },
-            { value: "open", title: "Still Deciding", description: "The overall venue fit matters more than a specific scale label." }
+            { value: "outsideCaterer", title: "I Need To Bring My Own Caterer", description: "A venue that requires its own caterer or an approved caterer list would not work for us." },
+            { value: "outdoorOnlyCeremony", title: "An Outdoor-Only Ceremony", description: "We need an indoor option for the ceremony." },
+            { value: "longDrive", title: "A Long Drive From Orlando", description: "Venues well outside the Orlando area, such as Daytona Beach, St. Augustine, or Gainesville, are off the table." },
+            { value: "noAirConditionedReception", title: "No Air-Conditioned Reception", description: "We need a climate-controlled indoor space for the reception." },
+            { value: "none", title: "None Of These", description: "Nothing here is a dealbreaker. Show me the best overall fit." }
           ]
         },
         {
@@ -984,9 +989,15 @@
       function selectAnswer(question, value) {
         if (question.multiple) {
           const current = Array.isArray(state.answers[question.id]) ? state.answers[question.id] : [];
-          state.answers[question.id] = current.includes(value)
-            ? current.filter((item) => item !== value)
-            : [...current, value];
+          if (current.includes(value)) {
+            state.answers[question.id] = current.filter((item) => item !== value);
+          } else if (question.exclusiveValue && value === question.exclusiveValue) {
+            // "None of these" replaces every other selection.
+            state.answers[question.id] = [value];
+          } else {
+            // Picking a real answer clears an earlier "None of these".
+            state.answers[question.id] = [...current.filter((item) => item !== question.exclusiveValue), value];
+          }
         } else {
           state.answers[question.id] = value;
         }
@@ -1102,7 +1113,7 @@
         runnersHeading.textContent = runnersUp.length ? "Three more to see" : "Your venue match";
 
         if (!runnersUp.length) {
-          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count, budget, or setting filter to explore a broader shortlist.</p>';
+          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count, budget, setting, or dealbreaker choices to explore a broader shortlist.</p>';
         } else {
           runnerGrid.innerHTML = runnersUp
             .map(
