@@ -88,6 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       name: topVenue.name,
       heroImageUrl: topVenue.hero_image_url,
       url: topVenue.review_url || topVenue.source_url,
+      reviewUrl: topVenue.review_url,
       summary: buildSummary(topVenue, answers),
       score: topVenue.score,
     },

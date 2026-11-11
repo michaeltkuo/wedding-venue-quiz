@@ -673,7 +673,7 @@
             <p class="kicker">A venue quiz from Author Made</p>
             <h1>Which Orlando wedding venue fits your day?</h1>
             <p>
-              Tell us what matters most. We will narrow the search to one best-fit venue and a few more worth seeing.
+              Meet your match: your wedding venue match, that is. Narrow down your search to discover which top Orlando wedding venues best fit your day.
             </p>
             <button class="button-primary" type="button" data-action="start">Find My Venue Match</button>
           </div>
@@ -721,7 +721,7 @@
         <div class="result-disclaimer" id="result-disclaimer" hidden></div>
         <div class="result-actions">
           <a class="button-primary" id="result-link" href="#" target="_blank" rel="noreferrer">Read The Venue Review</a>
-          <button class="button-secondary" type="button" data-action="restart">Retake With Different Priorities</button>
+          <button class="button-secondary" type="button" data-action="restart">Retake Quiz</button>
         </div>
         <section class="runners-section">
           <p class="section-kicker" id="runners-kicker">Also worth a look</p>
@@ -774,7 +774,7 @@
           asideDescription: "We will only rank venues that can comfortably support the size of celebration you select.",
           hardFilter: true,
           options: [
-            { value: "up-to-50", minimumCapacity: 50, title: "Up To 50", description: "An intimate gathering, elopement, or small micro wedding." },
+            { value: "up-to-50", minimumCapacity: 50, title: "Up To 50", description: "An intimate gathering, elopement, or micro wedding." },
             { value: "51-100", minimumCapacity: 100, title: "51 To 100", description: "A smaller celebration with room for your favorite people." },
             { value: "101-150", minimumCapacity: 150, title: "101 To 150", description: "A mid-size wedding with a fuller dance floor and dinner service." },
             { value: "151-200", minimumCapacity: 200, title: "151 To 200", description: "A larger day that needs meaningful room to move." },
@@ -800,7 +800,7 @@
           id: "format",
           category: "Your Day",
           heading: "What kind of celebration are you planning at the venue?",
-          description: "The answer helps distinguish full-wedding venues from reception-focused spaces.",
+          description: "Select whether your preferred venue match accommodates an all-day celebration or just a dinner gathering.",
           asideHeading: "Picture the flow of the day.",
           asideDescription: "Some venues shine for a ceremony and reception in one place. Others are a better fit for the party afterward.",
           options: [
@@ -813,14 +813,14 @@
           id: "setting",
           category: "Your Setting",
           heading: "How do you want the space to work with the Florida weather?",
-          description: "Choose the setting arrangement that feels most comfortable for your day.",
+          description: "Assuming the weather cooperates, which setting is your ideal for your wedding day?",
           asideHeading: "The forecast is part of the plan.",
           asideDescription: "Outdoor beauty and a solid indoor option do not have to be competing priorities.",
           options: [
-            { value: "outdoor", title: "Outdoor First", description: "The ceremony and portraits need to feel outside and connected to the landscape." },
-            { value: "indoor", title: "Indoor First", description: "A climate-controlled interior is the priority." },
-            { value: "both", title: "The Best Of Both", description: "I want outside beauty with a real indoor option for the event." },
-            { value: "open", title: "I Am Open", description: "The venue itself matters more than a fixed indoor or outdoor plan." }
+            { value: "outdoor", title: "Primarily Outdoor", description: "I want ceremony and reception held outside, whether fully outdoors or covered open-air." },
+            { value: "indoor", title: "Primarily Indoor", description: "A climate-controlled indoor setting for both ceremony and reception is ideal." },
+            { value: "both", title: "The Best of Both", description: "I prefer an outdoor space for the ceremony with an indoor option for the reception." },
+            { value: "open", title: "I'm Open", description: "The venue itself matters more than a specific plan." }
           ]
         },
         {
@@ -854,8 +854,8 @@
         {
           id: "perks",
           category: "Your Extras",
-          heading: "Which extras would make the venue feel especially right?",
-          description: "Select all that genuinely matter. This is the one question where you can choose more than one answer.",
+          heading: "WHICH EXTRAS WOULD MAKE THE VENUE FEEL ESPECIALLY RIGHT?",
+          description: "Select as many responses as you like.",
           asideHeading: "The details do the work.",
           asideDescription: "These preferences will shape the order of the venues that have already cleared the hard budget and guest-count rules.",
           multiple: true,
@@ -883,8 +883,8 @@
         {
           id: "priority",
           category: "Your Priority",
-          heading: "When you picture the right venue, what matters most?",
-          description: "Choose the thing that would make you feel most confident after booking the tour.",
+          heading: "FINALLY, WHEN YOU PICTURE THE RIGHT VENUE, WHAT MATTERS MOST OF ALL?",
+          description: "When all is said and done, which ONE thing would make you feel most confident after your venue tour?",
           asideHeading: "Choose the thing you will remember.",
           asideDescription: "Your final preference breaks ties between venues that fit the practical parts of your plan.",
           options: [
@@ -1030,6 +1030,7 @@
               name: "Leu Gardens",
               heroImageUrl: null,
               url: "https://www.authormadephoto.com/blog/wedding-venue-review-leu-gardens-orlando",
+              reviewUrl: "https://www.authormadephoto.com/blog/wedding-venue-review-leu-gardens-orlando",
               summary: "Leu Gardens rose to the top because it pairs the garden-forward setting you selected and an outdoor-focused experience. Nearly 50 acres of gardens, secluded paths, and an indoor reception option.",
               score: 78
             },
@@ -1079,7 +1080,15 @@
         resultTitle.textContent = topVenue.name;
         resultSummary.textContent = topVenue.summary;
         matchTags.innerHTML = (tags || []).map((tag) => `<span class="match-tag">${tag}</span>`).join("");
-        resultLink.href = topVenue.url || "#";
+        // Show the review button only when the venue has a dedicated review in the database; otherwise send
+        // people to the full venue list.
+        if (topVenue.reviewUrl) {
+          resultLink.textContent = "Read The Venue Review";
+          resultLink.href = topVenue.reviewUrl;
+        } else {
+          resultLink.textContent = "View All Wedding Venues";
+          resultLink.href = "https://www.authormadephoto.com/best-orlando-central-fl-wedding-venues";
+        }
 
         if (disclaimer) {
           disclaimerEl.hidden = false;
@@ -1101,7 +1110,6 @@
                   <span class="runner-number">Runner-up ${index + 1}</span>
                   <h3>${venue.name}</h3>
                   <p>${venue.city ? `${venue.city}. ` : ""}${venue.note || ""}</p>
-                  <a href="${venue.url || "#"}" target="_blank" rel="noreferrer">Read the venue review</a>
                 </article>
               `
             )
