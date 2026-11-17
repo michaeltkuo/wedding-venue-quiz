@@ -402,6 +402,21 @@
         if (data && data.type === "quiz-resize" && typeof data.height === "number") {
           frame.style.height = Math.max(data.height, 480) + "px";
         }
+        // Mirrors the production Code Block listener. In mobile mode the simulated phone frame is the scroller.
+        if (data && data.type === "quiz-scroll-top") {
+          const isMobile = document.body.classList.contains("mode-mobile");
+          const scroller = isMobile ? document.querySelector(".page-frame") : null;
+          const viewTop = scroller ? scroller.getBoundingClientRect().top : 0;
+          const viewHeight = scroller ? scroller.clientHeight : window.innerHeight;
+          const top = frame.getBoundingClientRect().top - viewTop;
+          if (top < 0 || top > viewHeight * 0.5) {
+            if (scroller) {
+              scroller.scrollTo({ top: scroller.scrollTop + top, behavior: "smooth" });
+            } else {
+              window.scrollTo({ top: window.scrollY + top, behavior: "smooth" });
+            }
+          }
+        }
       });
 
       inspectToggle.addEventListener("change", () => {
