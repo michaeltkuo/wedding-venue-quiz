@@ -63,7 +63,7 @@ export interface QuizAnswers {
   format?: string;
   setting?: string;
   location?: string;
-  // Q7 dealbreakers (multi-select): outsideCaterer, outdoorOnlyCeremony, longDrive, noAirConditionedReception, none.
+  // Q7 dealbreakers (multi-select): outsideCaterer, outdoorOnlyCeremony (shown as "No Weather Backup"), longDrive, noAirConditionedReception, none.
   dealbreakers?: string[];
   perks?: string[];
   planning?: string;
