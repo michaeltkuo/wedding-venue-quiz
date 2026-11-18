@@ -31,12 +31,27 @@ function venueVibeTokens(venue: VenueRow): string[] {
     .filter(Boolean);
 }
 
-// Primary Style / Vibe is free text (e.g. "Botanical / romantic / historic / garden"), so this is a
-// best-effort keyword match rather than an exact enum comparison. Revisit after reviewing real results.
+// The sheet's "Primary Style / Vibe" column uses the quiz's five Q1 category names, so it is the only
+// source of truth for style. Photo notes are not used: a barn whose notes mention a "garden ceremony"
+// must not count as Garden Romance.
+const VIBE_CATEGORY_NAMES: Record<string, string> = {
+  garden: "garden romance",
+  european: "old-world character",
+  modern: "modern + editorial",
+  rustic: "relaxed + rustic",
+  classic: "classic elegance",
+};
+
 function matchesVibe(venue: VenueRow, answerVibe: string | undefined): boolean {
   if (!answerVibe) return false;
-  const synonyms = VIBE_SYNONYMS[answerVibe] ?? [answerVibe];
   const tokens = venueVibeTokens(venue);
+  const category = VIBE_CATEGORY_NAMES[answerVibe];
+  const knownCategories = Object.values(VIBE_CATEGORY_NAMES);
+  if (category && tokens.some((token) => knownCategories.includes(token))) {
+    return tokens.includes(category);
+  }
+  // Fallback for a venue whose style cell does not use the category names: best-effort keyword match.
+  const synonyms = VIBE_SYNONYMS[answerVibe] ?? [answerVibe];
   if (tokens.some((token) => synonyms.some((syn) => token.includes(syn)))) return true;
   if (answerVibe === "garden" && venue.garden_flag) return true;
   if (answerVibe === "european" && venue.european_flag) return true;
@@ -192,6 +207,8 @@ function priorityScore(venue: VenueRow, priorityAnswer: string | undefined, gues
 export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
   let score = 0;
   if (matchesVibe(venue, answers.vibe)) score += 30;
+  // A venue whose first-listed style is the chosen one is a stronger fit than one listing it third.
+  if (answers.vibe && venueVibeTokens(venue)[0] === VIBE_CATEGORY_NAMES[answers.vibe]) score += 10;
   if (matchesFormat(venue, answers.format)) score += 15;
   score += settingScore(venue, answers.setting, answers.guestMinimum ?? 0);
   score += locationScore(venue, answers.location);
@@ -211,40 +228,65 @@ function closestPenalty(venue: VenueRow, answers: QuizAnswers): number {
   return budgetPenalty + capacityPenalty + settingPenalty + dealbreakerPenalty;
 }
 
+// Every result shows one top match plus this many runners-up.
+export const RESULT_COUNT = 4;
+
 export interface RankResult {
+  // exact   = all shown venues meet every requirement
+  // narrow  = the top match meets every requirement, but at least one runner-up does not
+  // closest = even the top match misses at least one requirement
   mode: "exact" | "narrow" | "closest";
   venues: RankedVenue[];
+  // True when at least one shown venue misses a budget, guest-count, setting or dealbreaker requirement.
+  someMissRequirements: boolean;
 }
 
+function meetsAllRequirements(venue: VenueRow, answers: QuizAnswers): boolean {
+  const guestMinimum = answers.guestMinimum ?? 0;
+  return (
+    matchesBudget(venue, answers.budget) &&
+    matchesGuestCount(venue, guestMinimum) &&
+    matchesSetting(venue, answers.setting, guestMinimum) &&
+    countDealbreakerViolations(venue, answers.dealbreakers, guestMinimum) === 0
+  );
+}
+
+// Ranking order (Amy, Nov 18): style/vibe comes first, above everything else. A venue in the chosen
+// style that misses one requirement beats a venue in another style that meets them all. Within the
+// same style group: venues meeting every requirement, then venues that fit the guest count, then the
+// fewest/smallest misses, then the weighted score. Results always fill all four slots.
 export function rankVenues(venues: VenueRow[], answers: QuizAnswers): RankResult {
   const eligible = venues.filter((venue) => venue.launch_eligible);
   const guestMinimum = answers.guestMinimum ?? 0;
 
-  const exactMatches: RankedVenue[] = eligible
-    .filter(
-      (venue) =>
-        matchesBudget(venue, answers.budget) &&
-        matchesGuestCount(venue, guestMinimum) &&
-        matchesSetting(venue, answers.setting, guestMinimum) &&
-        countDealbreakerViolations(venue, answers.dealbreakers, guestMinimum) === 0
+  const ranked = eligible
+    .map((venue) => ({
+      venue,
+      styleMatch: matchesVibe(venue, answers.vibe),
+      meetsAll: meetsAllRequirements(venue, answers),
+      guestFits: matchesGuestCount(venue, guestMinimum),
+      penalty: closestPenalty(venue, answers),
+      score: scoreVenue(venue, answers),
+    }))
+    .sort(
+      (a, b) =>
+        Number(b.styleMatch) - Number(a.styleMatch) ||
+        Number(b.meetsAll) - Number(a.meetsAll) ||
+        Number(b.guestFits) - Number(a.guestFits) ||
+        a.penalty - b.penalty ||
+        b.score - a.score ||
+        (b.venue.capacity_max ?? 0) - (a.venue.capacity_max ?? 0)
     )
-    .map((venue) => ({ ...venue, score: scoreVenue(venue, answers) }))
-    .sort((a, b) => b.score - a.score || (b.capacity_max ?? 0) - (a.capacity_max ?? 0));
+    .slice(0, RESULT_COUNT);
 
-  if (exactMatches.length > 0) {
-    return {
-      mode: exactMatches.length >= 4 ? "exact" : "narrow",
-      venues: exactMatches.slice(0, 4),
-    };
-  }
+  const topMeetsAll = ranked[0]?.meetsAll ?? false;
+  const someMissRequirements = ranked.some((item) => !item.meetsAll);
 
-  const closest: RankedVenue[] = eligible
-    .map((venue) => ({ venue, score: scoreVenue(venue, answers), penalty: closestPenalty(venue, answers) }))
-    .sort((a, b) => a.penalty - b.penalty || b.score - a.score)
-    .slice(0, 4)
-    .map(({ venue, score }) => ({ ...venue, score }));
-
-  return { mode: "closest", venues: closest };
+  return {
+    mode: !topMeetsAll ? "closest" : someMissRequirements ? "narrow" : "exact",
+    venues: ranked.map(({ venue, score }) => ({ ...venue, score })),
+    someMissRequirements,
+  };
 }
 
 export function buildSummary(venue: RankedVenue, answers: QuizAnswers): string {

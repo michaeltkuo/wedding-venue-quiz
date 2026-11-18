@@ -577,13 +577,21 @@
         text-transform: uppercase;
       }
 
+      .result-note {
+        color: var(--muted);
+        font-size: 13px;
+        font-style: italic;
+        line-height: 1.55;
+        margin: clamp(14px, 8px + 1.6cqi, 20px) 0 0;
+      }
+
       .result-disclaimer {
         background: #e7d6c4;
         border-left: 3px solid var(--rust);
         color: var(--ink);
         font-size: 14px;
         line-height: 1.55;
-        margin-top: clamp(14px, 8px + 1.6cqi, 20px);
+        margin-bottom: clamp(14px, 8px + 1.6cqi, 20px);
         padding: 12px 14px;
       }
 
@@ -651,15 +659,6 @@
         font-size: 11px;
         margin-top: auto;
         padding-top: 8px;
-      }
-
-      .empty-runners {
-        border-top: 1px solid var(--line-dark);
-        color: var(--muted);
-        font-size: 15px;
-        line-height: 1.6;
-        margin: 0;
-        padding-top: 18px;
       }
 
       /* Narrow and medium cards: runners are compact horizontal rows (thumbnail beside text). */
@@ -765,7 +764,7 @@
             <h1 class="display display-xl" id="result-title">Leu Gardens</h1>
             <p class="lede" id="result-summary"></p>
             <div class="match-tags" id="match-tags"></div>
-            <div class="result-disclaimer" id="result-disclaimer" hidden></div>
+            <p class="result-note">Your top venue choices may not meet every single requirement you selected. Venues are shown as closest fits to your preferences. You can always retake the quiz with different responses to include more results.</p>
             <div class="actions">
               <a class="btn btn-primary" id="result-link" href="#" target="_blank" rel="noreferrer">Read The Venue Review</a>
               <button class="btn btn-secondary" type="button" data-action="restart">Retake Quiz</button>
@@ -776,6 +775,7 @@
         <div class="runners">
           <p class="kicker" id="runners-kicker">We think you'll love these, too</p>
           <h2 class="display display-m" id="runners-heading">Your runners-up</h2>
+          <div class="result-disclaimer" id="runners-disclaimer" hidden></div>
           <div class="runner-grid" id="runner-grid"></div>
         </div>
       </section>
@@ -1148,7 +1148,10 @@
               { id: "villa-festa", name: "Villa Festa", city: "DeLand", note: "Italian Renaissance Revival architecture, bright interiors, a shaded ceremony setting, and overnight accommodations.", url: "https://www.authormadephoto.com/blog/wedding-venue-review-villa-festa-deland-fl", score: 52 }
             ],
             tags: ["garden-forward setting", "weather backup"],
-            disclaimer: null
+            // Add &narrow=1 to preview the runners-up note.
+            runnersUpDisclaimer: new URLSearchParams(window.location.search).get("narrow") === "1"
+              ? "Your responses narrowed down our list quite a bit, so some of these venues may not meet all your chosen requirements. We think they're still worth a consideration anyway."
+              : null
           };
         }
 
@@ -1170,14 +1173,14 @@
       }
 
       function renderResults(result) {
-        const { topVenue, runnersUp, tags, disclaimer, resultMode } = result;
+        const { topVenue, runnersUp, tags, runnersUpDisclaimer, resultMode } = result;
         const resultPhoto = document.getElementById("result-photo");
         const resultImage = document.getElementById("result-image");
         const resultKicker = document.getElementById("result-kicker");
         const resultTitle = document.getElementById("result-title");
         const resultSummary = document.getElementById("result-summary");
         const matchTags = document.getElementById("match-tags");
-        const disclaimerEl = document.getElementById("result-disclaimer");
+        const disclaimerEl = document.getElementById("runners-disclaimer");
         const resultLink = document.getElementById("result-link");
         const runnersKicker = document.getElementById("runners-kicker");
         const runnersHeading = document.getElementById("runners-heading");
@@ -1203,18 +1206,20 @@
           resultLink.href = "https://www.authormadephoto.com/best-orlando-central-fl-wedding-venues";
         }
 
-        if (disclaimer) {
+        // The "narrowed down" note sits on the runners-up only, and only when the API says a shown venue
+        // misses a requirement. The top match always carries the fixed closest-fit note instead.
+        if (runnersUpDisclaimer) {
           disclaimerEl.hidden = false;
-          disclaimerEl.textContent = disclaimer;
+          disclaimerEl.textContent = runnersUpDisclaimer;
         } else {
           disclaimerEl.hidden = true;
         }
 
-        runnersKicker.textContent = runnersUp.length ? "We think you'll love these, too" : "Your shortlist";
-        runnersHeading.textContent = runnersUp.length ? "Your runners-up" : "Your venue match";
+        runnersKicker.textContent = "We think you'll love these, too";
+        runnersHeading.textContent = "Your runners-up";
 
         if (!runnersUp.length) {
-          runnerGrid.innerHTML = '<p class="empty-runners">This was the only launch-ready venue that met the must-have filters you chose. Try widening the guest count, budget, setting, or dealbreaker choices to explore a broader shortlist.</p>';
+          runnerGrid.innerHTML = "";
         } else {
           runnerGrid.innerHTML = runnersUp
             .map(
