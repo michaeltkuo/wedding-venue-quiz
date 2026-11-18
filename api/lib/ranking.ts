@@ -221,9 +221,7 @@ export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
 
 function closestPenalty(venue: VenueRow, answers: QuizAnswers): number {
   const guestMinimum = answers.guestMinimum ?? 0;
-  // Budget is the first requirement to give way (Amy, Nov 18): a venue over budget ranks ahead of one
-  // that misses the indoor/outdoor setting (50) or a dealbreaker (50 each).
-  const budgetPenalty = matchesBudget(venue, answers.budget) ? 0 : 20;
+  const budgetPenalty = matchesBudget(venue, answers.budget) ? 0 : 100;
   const capacityPenalty = matchesGuestCount(venue, guestMinimum) ? 0 : guestMinimum - (venue.capacity_max ?? 0);
   const settingPenalty = matchesSetting(venue, answers.setting, guestMinimum) ? 0 : 50;
   const dealbreakerPenalty = countDealbreakerViolations(venue, answers.dealbreakers, guestMinimum) * 50;
