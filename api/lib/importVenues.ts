@@ -168,7 +168,9 @@ export function parseVenueCsv(csvText: string): ImportResult {
       research_status: row["Research Status"]?.trim() || null,
       launch_eligible: launchEligible,
       launch_ineligibility_reason: launchEligible ? null : reasons.join("; "),
-      hero_image_url: null,
+      hero_image_url: urlOrNull(pick(row, "Hero Image URL")),
+      top_match_description: pick(row, "Top Match Description") || null,
+      runners_up_description: pick(row, "Runners-Up Description") || null,
     });
   }
 

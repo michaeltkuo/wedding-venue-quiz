@@ -49,6 +49,9 @@ export type VenueRow = {
   launch_eligible: boolean;
   launch_ineligibility_reason: string | null;
   hero_image_url: string | null;
+  // Reviewed results-page copy from the venue sheet; blank cells fall back to generated text.
+  top_match_description: string | null;
+  runners_up_description: string | null;
 };
 
 // Matches the quiz question ids in embed-app.html; keep both in sync if questions change.

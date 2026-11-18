@@ -1,6 +1,6 @@
 # Results page copy drafts
 
-Drafts generated from data/venues.csv for tailoring. Facts come only from the CSV.
+These drafts now live in the `Top Match Description` and `Runners-Up Description` columns of data/venues.csv, which is the source the results page reads. Edit them there; this file is kept only as the original draft.
 
 ## Leu Gardens
 **Top match:** Leu Gardens rose to the top for your day, offering nearly 50 acres of gardens, secluded paths, and room for up to 180 guests. Its botanical backdrops and golden-hour portrait spots suit couples who love the outdoors, and an indoor reception option is available too.

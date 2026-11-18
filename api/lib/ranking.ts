@@ -110,7 +110,9 @@ function violatesDealbreaker(venue: VenueRow, dealbreaker: string, guestMinimum:
       // "Outside Catering Allowed?" = No covers both required in-house and approved-caterer-list venues.
       return /^no\.?$/i.test((venue.outside_vendors ?? "").trim());
     case "outdoorOnlyCeremony":
-      return venue.indoor_ceremony === "no";
+      // Only venues with no indoor ceremony space AND no weather backup. A venue that moves the
+      // ceremony inside when it rains (e.g. Casa Feliz, Leu Gardens) still has a rain plan.
+      return venue.indoor_ceremony === "no" && venue.weather_backup === "no";
     case "longDrive":
       return LONG_DRIVE_CITIES.has((venue.city_area ?? "").trim().toLowerCase());
     case "noAirConditionedReception":
@@ -277,8 +279,9 @@ export function buildSummary(venue: RankedVenue, answers: QuizAnswers): string {
       ? firstReasons[0]
       : `${firstReasons.slice(0, -1).join(", ")} and ${firstReasons[firstReasons.length - 1]}`;
 
-  const note = venue.photo_notes || venue.best_for || "";
-  return `${venue.name} rose to the top because it pairs ${joined}.${note ? ` ${note}` : ""}`;
+  // Reviewed per-venue copy ("Top Match Description" column) wins; fall back to the sheet's raw notes.
+  const note = venue.top_match_description || venue.photo_notes || venue.best_for || "";
+  return `Matches ${joined}.${note ? ` ${note}` : ""}`;
 }
 
 export function buildDisplayTags(venue: RankedVenue, answers: QuizAnswers): string[] {
