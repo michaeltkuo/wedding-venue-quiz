@@ -142,11 +142,19 @@ Remaining venues are scored using:
 
 The scoring is deterministic. Adding or editing venue data does not require editing frontend code.
 
-### Result modes
+### Result ranking and modes
 
-- `exact` — four or more venues pass the hard filters.
-- `narrow` — one to three venues pass the hard filters.
-- `closest` — no venue passes both hard filters; the closest eligible venues are returned with a disclaimer.
+Every result shows one top match plus three runners-up. Style/vibe (Q1) ranks above everything else:
+a venue in the chosen style that misses a requirement beats a venue in another style that meets them
+all. Within each style group, venues meeting every requirement come first, then venues that fit the
+guest count, then the smallest misses, then the weighted score.
+
+- `exact` — all four shown venues meet the budget, guest-count, setting and dealbreaker requirements.
+- `narrow` — the top match meets them all, but at least one runner-up does not.
+- `closest` — even the top match misses at least one requirement.
+
+The top match always shows a fixed "closest fits" note. The runners-up show a "narrowed down our list"
+note only in `narrow` and `closest` mode.
 
 ## Kit setup (deferred)
 

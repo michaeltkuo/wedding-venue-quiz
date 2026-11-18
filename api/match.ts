@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       topVenue: null,
       runnersUp: [],
       tags: [],
-      disclaimer: "No venues are currently marked launch-ready. Please check back soon.",
+      runnersUpDisclaimer: "No venues are currently marked launch-ready. Please check back soon.",
     });
   }
 
@@ -74,12 +74,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.info("Kit sync skipped: KIT_API_KEY is not set");
   }
 
-  const disclaimer =
-    result.mode === "closest"
-      ? "Your budget, guest-count, setting, and dealbreaker filters did not produce an exact venue match in the launch-ready database. These are the closest venues to tour while you decide which must-have has the most flexibility."
-      : result.mode === "narrow"
-        ? "Your hard filters produced a very focused shortlist. The venues below are the matches that currently meet the budget, guest-count, setting, and dealbreaker requirements you selected."
-        : null;
+  // Shown on the runners-up section only (never on the top match), and only when a shown venue misses
+  // a requirement. Wording from Amy's Nov 18 QC note.
+  const runnersUpDisclaimer = result.someMissRequirements
+    ? "Your responses narrowed down our list quite a bit, so some of these venues may not meet all your chosen requirements. We think they're still worth a consideration anyway."
+    : null;
 
   return res.status(200).json({
     resultMode: result.mode,
@@ -102,7 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       score: venue.score,
     })),
     tags: buildDisplayTags(topVenue, answers),
-    disclaimer,
+    runnersUpDisclaimer,
     kitSync,
   });
 }
