@@ -496,6 +496,25 @@
         border-color: var(--rust);
       }
 
+      .optional-row {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr;
+        margin-top: 14px;
+      }
+
+      .optional {
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      @container quiz (min-width: 560px) {
+        .optional-row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
       .consent {
         align-items: flex-start;
         color: var(--muted);
@@ -743,6 +762,16 @@
             <div class="email-row">
               <label class="field-label" for="email">Email Address</label>
               <input class="email-input" id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+            </div>
+            <div class="optional-row">
+              <div>
+                <label class="field-label" for="first-name">First Name <span class="optional">(optional)</span></label>
+                <input class="email-input" id="first-name" name="firstName" type="text" autocomplete="given-name" maxlength="60" />
+              </div>
+              <div>
+                <label class="field-label" for="wedding-date">Wedding Month <span class="optional">(optional)</span></label>
+                <input class="email-input" id="wedding-date" name="weddingDate" type="month" min="2026-01" />
+              </div>
             </div>
             <label class="consent" for="consent">
               <input id="consent" name="consent" type="checkbox" required />
@@ -1128,7 +1157,7 @@
         return option ? option.minimumCapacity : 0;
       }
 
-      async function fetchMatch(email, consent) {
+      async function fetchMatch(email, consent, extras = {}) {
         // Local, no-backend preview: open embed-app.html?mock=1 (add &start=1 to skip the intro too).
         if (new URLSearchParams(window.location.search).get("mock") === "1") {
           return {
@@ -1161,6 +1190,10 @@
           body: JSON.stringify({
             email,
             consent,
+            firstName: extras.firstName || undefined,
+            weddingDate: extras.weddingDate || undefined,
+            // Which blog post sent them: the Squarespace page forwards its ?src= onto this iframe's URL.
+            source: new URLSearchParams(window.location.search).get("src") || undefined,
             answers: { ...state.answers, guestMinimum: selectedGuestMinimum() }
           })
         });
@@ -1255,6 +1288,8 @@
         const consentInput = document.getElementById("consent");
         const error = document.getElementById("form-error");
         emailInput.value = "";
+        document.getElementById("first-name").value = "";
+        document.getElementById("wedding-date").value = "";
         consentInput.checked = false;
         error.textContent = "";
         startQuiz();
@@ -1301,7 +1336,10 @@
         submitButton.textContent = "Finding Your Match...";
 
         try {
-          const result = await fetchMatch(state.email, true);
+          const result = await fetchMatch(state.email, true, {
+            firstName: document.getElementById("first-name").value.trim(),
+            weddingDate: document.getElementById("wedding-date").value
+          });
           renderResults(result);
         } catch (submitError) {
           error.textContent = submitError.message || "Something went wrong finding your match. Please try again.";

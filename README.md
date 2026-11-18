@@ -156,28 +156,31 @@ guest count, then the smallest misses, then the weighted score.
 The top match always shows a fixed "closest fits" note. The runners-up show a "narrowed down our list"
 note only in `narrow` and `closest` mode.
 
-## Kit setup (deferred)
+## Kit setup
 
-The Kit sync is currently off. `api/match.ts` only calls Kit when `KIT_API_KEY` is set; otherwise it
-logs that the sync was skipped and still returns the venue result. Note that while Kit is off the
-submitted email is used for nothing and is not stored anywhere, so use test addresses and do not send
-real traffic to the deploy until Kit is connected.
+The Kit sync only runs when `KIT_API_KEY` is set; otherwise `api/match.ts` logs that the sync was skipped
+and still returns the venue result (`kitSync: "skipped"`). While it is off, the submitted email is used for
+nothing and is not stored anywhere, so use test addresses until Kit is connected.
+
+Spec: the "Email Launch Plan: Quiz to Kit" doc (Step 3 and the developer brief).
 
 To turn it on:
 
-1. In Kit, open **Account Settings -> Developer -> API**.
-2. Create a Kit API v4 key.
-3. Store it as `KIT_API_KEY` in local `.env` and in Vercel environment variables.
-4. Compare your account's tag names with `api/lib/tags.ts`.
-5. Update only the right-hand values in `KIT_TAG_NAMES` if your existing tags use different names.
+1. In Kit, open **Account Settings -> Developer -> API** and create a V4 API key.
+2. Store it as `KIT_API_KEY` in local `.env` and in Vercel environment variables, then redeploy.
+3. In Kit, make sure these exist, spelled exactly:
+   - Custom fields: `top_style`, `quiz_results`, `wedding_date`, `signup_source`.
+   - Tags: `Garden Romance`, `Old-World Character`, `Modern + Editorial`, `Relaxed + Rustic`, `Classic Elegance`, `Quiz taker`.
 
-The integration:
+What `syncQuizSignup` (`api/lib/kit.ts`) does on each submission with consent:
 
-1. Upserts the subscriber by email address.
-2. Creates or reuses each tag by name.
-3. Tags the subscriber by email address.
+1. Upserts the subscriber (`POST /v4/subscribers`) with `first_name` (optional box on the email screen) and the custom fields `quiz_results` (simple HTML of the top match and runners-up with links), `wedding_date` (`YYYY-MM`, optional) and `signup_source` (the `?src=` value).
+2. Tags **Quiz taker**.
+3. Adds the style tag only if the subscriber has none of the five style tags yet, and sets `top_style` at the same time. The style is the first entry in the #1 venue's "Primary Style / Vibe" cell (Leu Gardens -> `Garden Romance`). Retakers keep their first style, so they never start a second welcome sequence.
 
-A temporary Kit outage does not prevent the visitor from seeing a valid venue result; the API logs the failure server-side and still returns the match. There is no separate submission log - Kit is the only place subscriber/tag data lives.
+Tag names and field keys live in `api/lib/tags.ts`. Each Kit call has a 4 second timeout, and a Kit failure never blocks the visitor's result: the error is logged server-side and the response reports `kitSync: "failed"`. There is no separate submission log - Kit is the only place subscriber data lives.
+
+`signup_source`: the quiz runs in an iframe, so a `?src=` on the Squarespace page address is not visible to it. The Code Block below forwards it onto the iframe URL. Link quiz buttons in blog posts like `/venue-quiz?src=villa-festa-review`.
 
 ## Vercel deployment
 
@@ -205,6 +208,12 @@ Create a dedicated Squarespace page such as `/venue-quiz`, then add a Code Block
 ></iframe>
 <script>
   (function () {
+    // Forward the page's ?src= (which blog post sent them) to the quiz so Kit's signup_source is filled.
+    var src = new URLSearchParams(window.location.search).get("src");
+    if (src) {
+      var iframeEl = document.getElementById("venue-quiz-frame");
+      iframeEl.src = iframeEl.src + (iframeEl.src.indexOf("?") === -1 ? "?" : "&") + "src=" + encodeURIComponent(src);
+    }
     var quizOrigin = "https://YOUR-VERCEL-APP.vercel.app";
     var HEADER_OFFSET = 100; // room for a sticky Squarespace header; adjust if the quiz top hides under it
     var frame = document.getElementById("venue-quiz-frame");

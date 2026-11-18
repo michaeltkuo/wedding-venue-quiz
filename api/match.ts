@@ -1,11 +1,34 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getVenues } from "./lib/venueSource";
-import { buildDisplayTags, buildSummary, deriveKitTagKeys, rankVenues } from "./lib/ranking";
-import { tagSubscriberWithNames, upsertSubscriber } from "./lib/kit";
-import { KIT_TAG_NAMES } from "./lib/tags";
+import { buildDisplayTags, buildSummary, rankVenues } from "./lib/ranking";
+import { syncQuizSignup } from "./lib/kit";
+import { topStyleForVenue } from "./lib/tags";
 import type { MatchRequestBody } from "./lib/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const WEDDING_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/; // <input type="month"> value
+const SOURCE_PATTERN = /^[A-Za-z0-9._~-]{1,100}$/; // a blog-post slug from ?src=
+
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+interface ResultLine {
+  name: string;
+  note: string | null | undefined;
+  url: string | null | undefined;
+}
+
+// Simple HTML saved to the Kit quiz_results field; welcome email #1 inserts it.
+function buildQuizResultsHtml(top: ResultLine, runnersUp: ResultLine[]): string {
+  const item = (line: ResultLine) => {
+    const name = line.url
+      ? `<a href="${escapeHtml(line.url)}">${escapeHtml(line.name)}</a>`
+      : escapeHtml(line.name);
+    return `<p><strong>${name}</strong>${line.note ? `<br>${escapeHtml(line.note)}` : ""}</p>`;
+  };
+  return [item(top), ...runnersUp.map(item)].join("");
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
@@ -46,23 +69,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Kit is opt-in: with no KIT_API_KEY configured the quiz runs end to end without it, which is the
-  // current test-phase setup. Setting the key is all that is needed to turn the sync back on.
+  const firstName = typeof body?.firstName === "string" ? body.firstName.trim().slice(0, 60) : "";
+  const weddingDate = typeof body?.weddingDate === "string" && WEDDING_DATE_PATTERN.test(body.weddingDate) ? body.weddingDate : "";
+  const signupSource = typeof body?.source === "string" && SOURCE_PATTERN.test(body.source) ? body.source : "";
+
+  // Kit is opt-in: with no KIT_API_KEY configured the quiz runs end to end without it. Setting the
+  // key is all that is needed to turn the sync on.
   let kitSync: "ok" | "failed" | "skipped" = "skipped";
 
   if (process.env.KIT_API_KEY) {
-    const kitTagNames = deriveKitTagKeys(topVenue)
-      .map((key) => KIT_TAG_NAMES[key])
-      .filter((name): name is string => Boolean(name));
-
     try {
-      await upsertSubscriber(email, {
-        quiz_top_venue: topVenue.name,
-        quiz_result_mode: result.mode,
-        quiz_budget_bucket: answers.budget ?? "",
-        quiz_guest_range: answers.guestCount ?? "",
+      await syncQuizSignup({
+        email,
+        firstName: firstName || undefined,
+        weddingDate: weddingDate || undefined,
+        signupSource: signupSource || undefined,
+        topStyle: topStyleForVenue(topVenue.primary_vibe),
+        quizResultsHtml: buildQuizResultsHtml(
+          {
+            name: topVenue.name,
+            note: buildSummary(topVenue, answers),
+            url: topVenue.review_url || topVenue.source_url,
+          },
+          runnerVenues.map((venue) => ({
+            name: venue.name,
+            note: venue.runners_up_description || venue.photo_notes || venue.best_for,
+            url: venue.review_url || venue.source_url,
+          }))
+        ),
       });
-      await tagSubscriberWithNames(email, kitTagNames);
       kitSync = "ok";
     } catch (error) {
       // Never block the visitor's result on a Kit outage.
