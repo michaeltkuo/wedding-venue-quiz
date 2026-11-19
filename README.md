@@ -297,7 +297,7 @@ Not covered by the automated suite: `embed-app.html` (the browser UI) and the li
 - **CI** (`.github/workflows/ci.yml`): on every pull request and push to `main`, runs the typecheck and `npm run test:coverage` (the 90% gate), uploads the coverage report as an artifact, and checks that the PR title follows Conventional Commits.
 - **Release** (`.github/workflows/release.yml`): on push to `main`, re-runs the checks and then runs semantic-release.
 
-Recommended repository setting: in GitHub, Settings -> Branches, protect `main` and require the "Typecheck and test" check to pass before merging.
+Recommended repository setting: protect `main` so changes must go through a pull request and the CI check passes before merging. In GitHub, open the repository's **Settings -> Rules -> Rulesets** (or **Settings -> Branches**), target the default branch, require a pull request, and require the status check named **Typecheck and test (90% coverage gate)**. (The check only appears in the picker after it has run at least once.)
 
 ## Releases and versioning
 
