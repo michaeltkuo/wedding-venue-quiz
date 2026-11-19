@@ -74,6 +74,10 @@ export interface MatchRequestBody {
   email: string;
   consent: boolean;
   answers: QuizAnswers;
+  // Optional extras saved to Kit.
+  firstName?: string;
+  weddingDate?: string; // YYYY-MM
+  source?: string; // ?src= from the quiz page address (which blog post sent them)
 }
 
 export interface RankedVenue extends VenueRow {

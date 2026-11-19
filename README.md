@@ -4,7 +4,20 @@ An embeddable Orlando wedding venue matching quiz for [Author Made Photo + Video
 
 The approved quiz experience runs as a static HTML frontend inside a Squarespace Code Block iframe. Matching, email capture, and Kit tagging run through Vercel serverless functions. There is no database - venue data is parsed and ranked directly from a CSV on each request.
 
-> **Current phase: no external dependencies.** Venue data is read from the committed `data/venues.csv`, and the Kit sync is off unless `KIT_API_KEY` is set. The project deploys and runs the full quiz with an empty environment. See `implementation-plan.md` for how and when each is switched on.
+## Project status (v1.0)
+
+| Area | Status |
+| --- | --- |
+| Quiz frontend (`embed-app.html`) | Complete. Optional first name and wedding month on the email screen. |
+| Matching and ranking | Complete. Style-first ranking, always one top match plus three runners-up. |
+| Venue data | Committed `data/venues.csv`. Published-Google-Sheet mode is built and optional (`VENUE_SHEET_CSV_URL`). |
+| Kit integration | Complete. Creates the subscriber, fills four custom fields, and applies the "Quiz taker" and style tags. Runs only when `KIT_API_KEY` is set. |
+| Automated tests | 120+ tests; CI enforces 90% coverage on `api/`. |
+| CI and releases | GitHub Actions run typecheck and tests on every PR; semantic-release tags versions from commit messages. |
+
+Still manual, outside this repo: building the Kit welcome sequences and automations, verifying the Kit sending domain, and pasting the Squarespace Code Block. The launch checklist lives in the "Email Launch Plan: Quiz to Kit" doc.
+
+The project still deploys and runs the full quiz with an empty environment (no `KIT_API_KEY`, no sheet URL). See `implementation-plan.md` for the original rollout plan.
 
 ## Architecture
 
@@ -29,15 +42,19 @@ Squarespace /venue-quiz page
 - `api/lib/venueSource.ts` — reads `data/venues.csv`, or fetches and caches the published Google Sheet CSV when `VENUE_SHEET_CSV_URL` is set.
 - `api/lib/normalize.ts` — converts messy spreadsheet values into controlled fields.
 - `api/lib/importVenues.ts` — parses the CSV into normalized venue records.
-- `api/lib/ranking.ts` — hard filters, weighted scoring, result explanations, and Kit tag derivation.
-- `api/lib/kit.ts` — Kit API v4 client.
-- `api/lib/tags.ts` — internal tag keys and Kit tag names.
+- `api/lib/ranking.ts` — hard filters, weighted scoring, and result explanations.
+- `api/lib/kit.ts` — Kit API v4 client and `syncQuizSignup` (subscriber, fields, tags).
+- `api/lib/tags.ts` — the five style tag names, the "Quiz taker" tag, Kit custom field keys, and the first-listed-style rule.
+- `tests/` — Vitest suite (kept outside `api/` because Vercel treats every file in `api/` as an endpoint).
+- `.github/workflows/` — `ci.yml` (typecheck, tests, coverage gate, PR-title check) and `release.yml` (semantic-release).
+- `.releaserc.json` — semantic-release configuration.
+- `CONTRIBUTING.md` — how to make and ship a change.
 - `implementation-plan.md` — detailed product, deployment, and rollout plan.
 - `question-to-field-mapping.md` — mapping between quiz questions and source-sheet columns.
 
 ## Prerequisites
 
-- Node.js 20 or newer recommended
+- Node.js 22 or newer (CI runs Node 22)
 - npm
 - GitHub repository access
 - Kit account with API access enabled
@@ -60,10 +77,10 @@ Squarespace /venue-quiz page
 
 3. Fill in `.env` with the values described below.
 
-4. Run the typecheck:
+4. Run the typecheck and the tests:
 
    ```bash
-   npm run typecheck
+   npm run ci
    ```
 
 5. Run the Vercel development server:
@@ -156,28 +173,31 @@ guest count, then the smallest misses, then the weighted score.
 The top match always shows a fixed "closest fits" note. The runners-up show a "narrowed down our list"
 note only in `narrow` and `closest` mode.
 
-## Kit setup (deferred)
+## Kit setup
 
-The Kit sync is currently off. `api/match.ts` only calls Kit when `KIT_API_KEY` is set; otherwise it
-logs that the sync was skipped and still returns the venue result. Note that while Kit is off the
-submitted email is used for nothing and is not stored anywhere, so use test addresses and do not send
-real traffic to the deploy until Kit is connected.
+The Kit sync only runs when `KIT_API_KEY` is set; otherwise `api/match.ts` logs that the sync was skipped
+and still returns the venue result (`kitSync: "skipped"`). While it is off, the submitted email is used for
+nothing and is not stored anywhere, so use test addresses until Kit is connected.
+
+Spec: the "Email Launch Plan: Quiz to Kit" doc (Step 3 and the developer brief).
 
 To turn it on:
 
-1. In Kit, open **Account Settings -> Developer -> API**.
-2. Create a Kit API v4 key.
-3. Store it as `KIT_API_KEY` in local `.env` and in Vercel environment variables.
-4. Compare your account's tag names with `api/lib/tags.ts`.
-5. Update only the right-hand values in `KIT_TAG_NAMES` if your existing tags use different names.
+1. In Kit, open **Account Settings -> Developer -> API** and create a V4 API key.
+2. Store it as `KIT_API_KEY` in local `.env` and in Vercel environment variables, then redeploy.
+3. In Kit, make sure these exist, spelled exactly:
+   - Custom fields: `top_style`, `quiz_results`, `wedding_date`, `signup_source`.
+   - Tags: `Garden Romance`, `Old-World Character`, `Modern + Editorial`, `Relaxed + Rustic`, `Classic Elegance`, `Quiz taker`.
 
-The integration:
+What `syncQuizSignup` (`api/lib/kit.ts`) does on each submission with consent:
 
-1. Upserts the subscriber by email address.
-2. Creates or reuses each tag by name.
-3. Tags the subscriber by email address.
+1. Upserts the subscriber (`POST /v4/subscribers`) with `first_name` (optional box on the email screen) and the custom fields `quiz_results` (simple HTML of the top match and runners-up with links), `wedding_date` (`YYYY-MM`, optional) and `signup_source` (the `?src=` value).
+2. Tags **Quiz taker**.
+3. Adds the style tag only if the subscriber has none of the five style tags yet, and sets `top_style` at the same time. The style is the first entry in the #1 venue's "Primary Style / Vibe" cell (Leu Gardens -> `Garden Romance`). Retakers keep their first style, so they never start a second welcome sequence.
 
-A temporary Kit outage does not prevent the visitor from seeing a valid venue result; the API logs the failure server-side and still returns the match. There is no separate submission log - Kit is the only place subscriber/tag data lives.
+Tag names and field keys live in `api/lib/tags.ts`. Each Kit call has a 4 second timeout, and a Kit failure never blocks the visitor's result: the error is logged server-side and the response reports `kitSync: "failed"`. There is no separate submission log - Kit is the only place subscriber data lives.
+
+`signup_source`: the quiz runs in an iframe, so a `?src=` on the Squarespace page address is not visible to it. The Code Block below forwards it onto the iframe URL. Link quiz buttons in blog posts like `/venue-quiz?src=villa-festa-review`.
 
 ## Vercel deployment
 
@@ -205,6 +225,12 @@ Create a dedicated Squarespace page such as `/venue-quiz`, then add a Code Block
 ></iframe>
 <script>
   (function () {
+    // Forward the page's ?src= (which blog post sent them) to the quiz so Kit's signup_source is filled.
+    var src = new URLSearchParams(window.location.search).get("src");
+    if (src) {
+      var iframeEl = document.getElementById("venue-quiz-frame");
+      iframeEl.src = iframeEl.src + (iframeEl.src.indexOf("?") === -1 ? "?" : "&") + "src=" + encodeURIComponent(src);
+    }
     var quizOrigin = "https://YOUR-VERCEL-APP.vercel.app";
     var HEADER_OFFSET = 100; // room for a sticky Squarespace header; adjust if the quiz top hides under it
     var frame = document.getElementById("venue-quiz-frame");
@@ -244,11 +270,57 @@ the popup's button at `/venue-quiz?start=1` instead of the bare page URL - `embe
 that query param and jumps straight to question 1. Leave the query param off for any direct nav
 link (e.g. the site header), so those visitors still see the intro/context screen first.
 
+## Automated tests and CI
+
+Run these before opening a PR. Because the only deployed environment is live, the automated suite is the safety net.
+
+```bash
+npm test               # run the suite once
+npm run test:watch     # re-run on change
+npm run test:coverage  # run with coverage; fails below 90% (lines, branches, functions, statements)
+npm run ci             # typecheck + coverage run, exactly what GitHub Actions runs
+```
+
+What is covered (`tests/`):
+
+- **`normalize`, `importVenues`**: spreadsheet value cleanup and CSV parsing, including old and new column layouts.
+- **Data integrity of `data/venues.csv`**: unique slugs, and every launch-eligible venue's first style maps to one of the five Kit style tags. A venue that fails this would silently skip the welcome sequence.
+- **`ranking`**: filters, scoring, ordering rules, summaries and display tags.
+- **`kit`**: the Kit client against a stubbed `fetch`, including the retake rule (no second style tag) and error handling. Tests never call the real Kit API.
+- **`match`**: the `/api/match` handler: validation, input sanitizing, HTML escaping of `quiz_results`, and "a Kit failure never blocks results".
+- **`venueSource`**: static file vs. published sheet, caching, fetch errors.
+
+Not covered by the automated suite: `embed-app.html` (the browser UI) and the live Kit/Vercel/Squarespace integration. Use the manual checklist below for those.
+
+### GitHub Actions
+
+- **CI** (`.github/workflows/ci.yml`): on every pull request and push to `main`, runs the typecheck and `npm run test:coverage` (the 90% gate), uploads the coverage report as an artifact, and checks that the PR title follows Conventional Commits.
+- **Release** (`.github/workflows/release.yml`): on push to `main`, re-runs the checks and then runs semantic-release.
+
+Recommended repository setting: protect `main` so changes must go through a pull request and the CI check passes before merging. In GitHub, open the repository's **Settings -> Rules -> Rulesets** (or **Settings -> Branches**), target the default branch, require a pull request, and require the status check named **Typecheck and test (90% coverage gate)**. (The check only appears in the picker after it has run at least once.)
+
+## Releases and versioning
+
+Versions are automated with [semantic-release](https://semantic-release.gitbook.io). Every merge to `main` is analysed, and when it contains a releasable change, a version tag (`vX.Y.Z`) and a GitHub Release with generated notes are created. Releases are the changelog: see the repository's Releases page. `package.json` stays at `0.0.0-development` on purpose.
+
+The version bump comes from the commit message, so use [Conventional Commits](https://www.conventionalcommits.org). With squash merging, the **PR title** is the commit message:
+
+| Prefix | Example | Release |
+| --- | --- | --- |
+| `fix:` | `fix: stop retakers getting a second style tag` | patch (1.0.0 to 1.0.1) |
+| `feat:` | `feat: add wedding month to the email screen` | minor (1.0.0 to 1.1.0) |
+| `feat!:` or a `BREAKING CHANGE:` footer | `feat!: rename Kit custom fields` | major (1.0.0 to 2.0.0) |
+| `docs:`, `chore:`, `test:`, `refactor:`, `ci:` | `docs: update Kit setup` | no release |
+
+The first release (no earlier tags) is `v1.0.0`.
+
+Deploys are separate: Vercel deploys `main` to production on every merge, whether or not a release was cut.
+
 ## Testing checklist
 
 ### Before deployment
 
-- `npm run typecheck` passes.
+- `npm run ci` passes (typecheck, tests, 90% coverage).
 - `.env` is not tracked by Git.
 - If `VENUE_SHEET_CSV_URL` is set, opening it directly in a browser returns raw CSV text.
 - `/api/match` rejects invalid email and missing consent.
@@ -259,8 +331,9 @@ link (e.g. the site header), so those visitors still see the intro/context scree
 
 - Open the Vercel URL directly and complete the quiz.
 - Submit a test email and confirm the result appears.
-- Confirm the response includes `kitSync: "skipped"` while Kit is off.
-- Once Kit is enabled, confirm the subscriber and tags appear in Kit.
+- Confirm the response includes `kitSync: "ok"` (or `"skipped"` if `KIT_API_KEY` is unset).
+- Confirm the test subscriber appears in Kit with the "Quiz taker" tag, one style tag, and all four custom fields. Kit's subscriber list can lag a few minutes behind a write.
+- Unsubscribe or delete the test subscriber afterward.
 - Embed the Vercel URL in a Squarespace preview page.
 - Check desktop and mobile layouts.
 - Confirm there is no internal iframe scrollbar or large dead space.

@@ -337,22 +337,3 @@ export function buildDisplayTags(venue: RankedVenue, answers: QuizAnswers): stri
   if (labels.length === 0) labels.push("strong overall fit");
   return labels.slice(0, 4);
 }
-
-// Internal keys must match api/lib/tags.ts's KIT_TAG_NAMES map.
-export function deriveKitTagKeys(venue: RankedVenue): string[] {
-  const keys: string[] = [];
-  if (venue.garden_flag) keys.push("garden");
-  if (venue.historic_flag) keys.push("historic");
-  if (venue.european_flag) keys.push("european");
-  if (venue.micro_wedding_fit) keys.push("microWedding");
-  if (venue.source_type_tags.some((tag) => tag.toLowerCase().includes("museum"))) keys.push("museum");
-  if (venue.source_type_tags.some((tag) => tag.toLowerCase().includes("spotlight"))) keys.push("spotlight");
-  if (venue.budget_buckets.includes("under-2k")) keys.push("budgetUnder2k");
-  if (venue.budget_buckets.includes("under-5k")) keys.push("budgetUnder5k");
-  const vibeText = (venue.primary_vibe ?? "").toLowerCase();
-  if (vibeText.includes("rustic")) keys.push("rustic");
-  if (vibeText.includes("modern")) keys.push("modern");
-  if (vibeText.includes("lakeside") || vibeText.includes("lakefront")) keys.push("lakefront");
-  if (venue.overnight_accommodation === "yes") keys.push("lodging");
-  return Array.from(new Set(keys));
-}
