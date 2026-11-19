@@ -3,11 +3,24 @@ import { getVenues } from "./lib/venueSource";
 import { buildDisplayTags, buildSummary, rankVenues } from "./lib/ranking";
 import { syncQuizSignup } from "./lib/kit";
 import { topStyleForVenue } from "./lib/tags";
+import { loadSemanticIndex, type SemanticIndex } from "./lib/semantic";
 import type { MatchRequestBody } from "./lib/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const WEDDING_DATE_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/; // <input type="month"> value
 const SOURCE_PATTERN = /^[A-Za-z0-9._~-]{1,100}$/; // a blog-post slug from ?src=
+
+// RANKING_MODE=semantic turns on similarity scoring for the "feel" answers (api/lib/semantic.ts).
+// Unset, or if the embeddings file cannot be read, ranking uses the rule-based score.
+function semanticIndexForRequest(): SemanticIndex | null {
+  if (process.env.RANKING_MODE !== "semantic") return null;
+  try {
+    return loadSemanticIndex();
+  } catch (error) {
+    console.error("Semantic ranking unavailable; using rule-based scoring", error);
+    return null;
+  }
+}
 
 function escapeHtml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -56,7 +69,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Could not load venue data." });
   }
 
-  const result = rankVenues(venues.filter((venue) => venue.launch_eligible), answers);
+  const semanticIndex = semanticIndexForRequest();
+  const result = rankVenues(venues.filter((venue) => venue.launch_eligible), answers, semanticIndex);
   const [topVenue, ...runnerVenues] = result.venues;
 
   if (!topVenue) {
@@ -138,5 +152,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     tags: buildDisplayTags(topVenue, answers),
     runnersUpDisclaimer,
     kitSync,
+    rankingMode: semanticIndex ? "semantic" : "rules",
   });
 }

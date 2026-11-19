@@ -1,0 +1,9 @@
+{
+  "name": "venue-embeddings-builder",
+  "private": true,
+  "description": "Offline-only: builds data/venue-embeddings.json. Kept out of the root package so the ~380 MB model runtime is never installed by CI or bundled by Vercel.",
+  "type": "module",
+  "dependencies": {
+    "@huggingface/transformers": "3.8.1"
+  }
+}

@@ -19,3 +19,6 @@ build/
 
 # Test coverage output
 coverage/
+
+# Embedding model cache (npm run embed)
+scripts/embeddings/.model-cache/

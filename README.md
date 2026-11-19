@@ -43,6 +43,11 @@ Squarespace /venue-quiz page
 - `api/lib/normalize.ts` — converts messy spreadsheet values into controlled fields.
 - `api/lib/importVenues.ts` — parses the CSV into normalized venue records.
 - `api/lib/ranking.ts` — hard filters, weighted scoring, and result explanations.
+- `api/lib/semantic.ts` — optional semantic-similarity scoring for the "feel" answers (`RANKING_MODE=semantic`).
+- `data/venue-embeddings.json` — precomputed answer and venue vectors for the semantic mode, built by `npm run embed`.
+- `scripts/embeddings/` — the offline embedding builder (its own `package.json`; never installed by CI or Vercel).
+- `scripts/compare-ranking.ts` — side-by-side results for the rule-based and semantic modes (`npm run compare:ranking`).
+- `docs/ranking-research.md` — research on ML/similarity ranking: what was tested, results, and the path to a trained model.
 - `api/lib/kit.ts` — Kit API v4 client and `syncQuizSignup` (subscriber, fields, tags).
 - `api/lib/tags.ts` — the five style tag names, the "Quiz taker" tag, Kit custom field keys, and the first-listed-style rule.
 - `tests/` — Vitest suite (kept outside `api/` because Vercel treats every file in `api/` as an endpoint).
@@ -93,13 +98,14 @@ Squarespace /venue-quiz page
 
 ### Environment variables
 
-All three are optional right now. With none of them set, the quiz runs on `data/venues.csv` and skips the Kit sync.
+All are optional right now. With none of them set, the quiz runs on `data/venues.csv`, ranks with the rule-based score and skips the Kit sync.
 
 | Variable | Purpose | Unset behavior |
 | --- | --- | --- |
 | `KIT_API_KEY` | Kit API v4 key; server-only | Kit sync is skipped; the response reports `kitSync: "skipped"` |
 | `VENUE_SHEET_CSV_URL` | Published CSV URL for the Google Sheet venue tab | Venue data is read from `data/venues.csv` |
 | `VERCEL_APP_PASSWORD` | Optional Vercel deployment protection password | No deployment protection |
+| `RANKING_MODE` | `semantic` turns on similarity scoring for the "feel" answers (see [Semantic mode](#semantic-mode-optional)) | Rule-based score |
 
 `.env` is ignored by Git. Never paste secret values into source files, Squarespace Code Blocks, browser JavaScript, or chat.
 
@@ -158,6 +164,36 @@ Remaining venues are scored using:
 - final priority
 
 The scoring is deterministic. Adding or editing venue data does not require editing frontend code.
+
+### Semantic mode (optional)
+
+With `RANKING_MODE=semantic`, the "feel" answers (Q1 style, the Portrait Potential perk, and the
+A Beautiful Setting / Something Distinctive priorities) are scored by meaning instead of flags: the
+answer wording couples see is compared with each venue's Photography Notes, Best For and description
+text using a sentence-embedding model. Requirements, style groups and logistics (budget, guests,
+setting, catering, lodging, weather backup, location) stay rule-based on the sheet's columns. See
+`docs/ranking-research.md` for why, and for the measurements.
+
+The vectors are computed offline and committed, so production runs no model and calls no API.
+Re-build them whenever venue text or answer wording changes; CI fails until you do:
+
+```bash
+npm run embed:install
+```
+
+```bash
+npm run embed
+```
+
+`embed:install` is needed once per checkout (it installs a ~380 MB model runtime into
+`scripts/embeddings/`, outside the root package). Before turning the mode on, compare the two modes:
+
+```bash
+npm run compare:ranking > comparison.md
+```
+
+In live Google Sheet mode, a venue whose text was edited after the last `npm run embed` scores at the
+midpoint (neither rewarded nor buried) until the vectors are rebuilt.
 
 ### Result ranking and modes
 
@@ -286,6 +322,7 @@ What is covered (`tests/`):
 - **`normalize`, `importVenues`**: spreadsheet value cleanup and CSV parsing, including old and new column layouts.
 - **Data integrity of `data/venues.csv`**: unique slugs, and every launch-eligible venue's first style maps to one of the five Kit style tags. A venue that fails this would silently skip the welcome sequence.
 - **`ranking`**: filters, scoring, ordering rules, summaries and display tags.
+- **`semantic`**: similarity scoring, its effect on the ranking, and a guard that `data/venue-embeddings.json` is current for every eligible venue and every "feel" answer in `embed-app.html`.
 - **`kit`**: the Kit client against a stubbed `fetch`, including the retake rule (no second style tag) and error handling. Tests never call the real Kit API.
 - **`match`**: the `/api/match` handler: validation, input sanitizing, HTML escaping of `quiz_results`, and "a Kit failure never blocks results".
 - **`venueSource`**: static file vs. published sheet, caching, fetch errors.

@@ -18,6 +18,7 @@ Merging to `main` deploys to production on Vercel and, for `feat`/`fix` changes,
 - Tests live in `tests/`, not `api/`: Vercel turns every file in `api/` into a serverless endpoint.
 - Never call the real Kit API from tests. `tests/kit.test.ts` stubs `fetch`; `tests/match.test.ts` mocks the Kit module.
 - Coverage is measured on `api/**` and must stay at or above 90% for lines, branches, functions and statements (`vitest.config.mts`).
+- If you change venue text in `data/venues.csv` or answer wording in `embed-app.html`, run `npm run embed` (after a one-time `npm run embed:install`) and commit `data/venue-embeddings.json`. `tests/semantic.test.ts` fails until you do.
 - If you change the venue sheet's columns or style names, `tests/importVenues.test.ts` checks that every launch-eligible venue still maps to one of the five Kit style tags.
 - The browser UI (`embed-app.html`) has no automated tests. Check it by hand: open `embed-app.html?mock=1&start=1` locally.
 

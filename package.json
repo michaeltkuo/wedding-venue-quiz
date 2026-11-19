@@ -10,6 +10,9 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "ci": "npm run typecheck && npm run test:coverage",
+    "embed:install": "npm --prefix scripts/embeddings install --onnxruntime-node-install-cuda=skip",
+    "embed": "tsx scripts/embeddings/build.mts",
+    "compare:ranking": "tsx scripts/compare-ranking.ts",
     "release": "semantic-release"
   },
   "dependencies": {
@@ -20,6 +23,7 @@
     "@vercel/node": "^3.2.0",
     "@vitest/coverage-v8": "^2.1.9",
     "semantic-release": "^24.2.9",
+    "tsx": "^4.23.15",
     "typescript": "^5.6.2",
     "vercel": "^37.4.0",
     "vitest": "^2.1.9"

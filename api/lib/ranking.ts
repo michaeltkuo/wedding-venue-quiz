@@ -1,4 +1,5 @@
 import type { QuizAnswers, RankedVenue, VenueRow } from "./types";
+import { semanticPoints, type SemanticIndex } from "./semantic";
 
 // Ports the original client-side scoring in embed-app.html to the normalized Supabase venue schema.
 // See question-to-field-mapping.md for the rationale behind each field mapping.
@@ -178,13 +179,15 @@ function allowsOutsideVendors(venue: VenueRow): boolean {
   return true;
 }
 
-function perksScore(venue: VenueRow, perks: string[]): number {
+// `feelRules` = false when semantic similarity replaces the flag-based "feel" bonuses (Portrait
+// Potential perk; A Beautiful Setting / Something Distinctive priority). See api/lib/semantic.ts.
+function perksScore(venue: VenueRow, perks: string[], feelRules = true): number {
   let score = 0;
   if (perks.includes("weather") && venue.weather_backup === "yes") score += 5;
   if (perks.includes("lodging") && venue.overnight_accommodation === "yes") score += 8;
   if (perks.includes("allInclusive") && isAllInclusiveVenue(venue)) score += 6;
   if (perks.includes("vendors") && allowsOutsideVendors(venue)) score += 6;
-  if (perks.includes("photos") && (venue.garden_flag || venue.historic_flag || venue.european_flag)) score += 8;
+  if (feelRules && perks.includes("photos") && (venue.garden_flag || venue.historic_flag || venue.european_flag)) score += 8;
   return score;
 }
 
@@ -195,16 +198,19 @@ function planningScore(venue: VenueRow, planningAnswer: string | undefined): num
   return 0;
 }
 
-function priorityScore(venue: VenueRow, priorityAnswer: string | undefined, guestMinimum: number): number {
+function priorityScore(venue: VenueRow, priorityAnswer: string | undefined, guestMinimum: number, feelRules = true): number {
   if (!priorityAnswer) return 0;
-  if (priorityAnswer === "photos" && (venue.garden_flag || venue.historic_flag || venue.european_flag)) return 8;
+  if (feelRules && priorityAnswer === "photos" && (venue.garden_flag || venue.historic_flag || venue.european_flag)) return 8;
   if (priorityAnswer === "guestComfort" && (venue.capacity_max ?? 0) >= guestMinimum + 30) return 8;
-  if (priorityAnswer === "unique" && (venue.historic_flag || venue.european_flag || venue.source_type_tags.some((tag) => tag.toLowerCase().includes("museum")))) return 8;
+  if (feelRules && priorityAnswer === "unique" && (venue.historic_flag || venue.european_flag || venue.source_type_tags.some((tag) => tag.toLowerCase().includes("museum")))) return 8;
   if (priorityAnswer === "value" && venue.budget_buckets.includes("under-2k")) return 8;
   return 0;
 }
 
-export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
+// `semantic` = this venue's similarity points from semanticPoints(). When given, they replace the
+// rule-based feel bonuses; when undefined (the default "rules" mode) scoring is unchanged.
+export function scoreVenue(venue: VenueRow, answers: QuizAnswers, semantic?: number): number {
+  const feelRules = semantic === undefined;
   let score = 0;
   if (matchesVibe(venue, answers.vibe)) score += 30;
   // A venue whose first-listed style is the chosen one is a stronger fit than one listing it third.
@@ -213,10 +219,10 @@ export function scoreVenue(venue: VenueRow, answers: QuizAnswers): number {
   score += settingScore(venue, answers.setting, answers.guestMinimum ?? 0);
   score += locationScore(venue, answers.location);
   score += microScore(venue, microPreference(answers));
-  score += perksScore(venue, answers.perks ?? []);
+  score += perksScore(venue, answers.perks ?? [], feelRules);
   score += planningScore(venue, answers.planning);
-  score += priorityScore(venue, answers.priority, answers.guestMinimum ?? 0);
-  return score;
+  score += priorityScore(venue, answers.priority, answers.guestMinimum ?? 0, feelRules);
+  return score + (semantic ?? 0);
 }
 
 function closestPenalty(venue: VenueRow, answers: QuizAnswers): number {
@@ -255,9 +261,14 @@ function meetsAllRequirements(venue: VenueRow, answers: QuizAnswers): boolean {
 // style that misses one requirement beats a venue in another style that meets them all. Within the
 // same style group: venues meeting every requirement, then venues that fit the guest count, then the
 // fewest/smallest misses, then the weighted score. Results always fill all four slots.
-export function rankVenues(venues: VenueRow[], answers: QuizAnswers): RankResult {
+//
+// With a semantic index (RANKING_MODE=semantic), only the final weighted score changes: the style
+// groups and requirement tiers above it are identical, so similarity can never promote a venue that
+// misses a requirement over one that meets it.
+export function rankVenues(venues: VenueRow[], answers: QuizAnswers, semanticIndex?: SemanticIndex | null): RankResult {
   const eligible = venues.filter((venue) => venue.launch_eligible);
   const guestMinimum = answers.guestMinimum ?? 0;
+  const similarity = semanticIndex ? semanticPoints(eligible, answers, semanticIndex) : null;
 
   const ranked = eligible
     .map((venue) => ({
@@ -266,7 +277,7 @@ export function rankVenues(venues: VenueRow[], answers: QuizAnswers): RankResult
       meetsAll: meetsAllRequirements(venue, answers),
       guestFits: matchesGuestCount(venue, guestMinimum),
       penalty: closestPenalty(venue, answers),
-      score: scoreVenue(venue, answers),
+      score: scoreVenue(venue, answers, similarity?.get(venue.slug)),
     }))
     .sort(
       (a, b) =>

@@ -6,6 +6,11 @@ const syncQuizSignup = vi.fn();
 
 vi.mock("../api/lib/venueSource", () => ({ getVenues: (...args: unknown[]) => getVenues(...args) }));
 vi.mock("../api/lib/kit", () => ({ syncQuizSignup: (...args: unknown[]) => syncQuizSignup(...args) }));
+const loadSemanticIndex = vi.fn();
+vi.mock("../api/lib/semantic", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../api/lib/semantic")>();
+  return { ...actual, loadSemanticIndex: (...args: unknown[]) => loadSemanticIndex(...args) };
+});
 
 import handler from "../api/match";
 
@@ -121,6 +126,35 @@ describe("POST /api/match results", () => {
     const res = await call("POST", { email: "a@b.co", consent: true });
     expect(res.statusCode).toBe(200);
     expect(res.body.topVenue).toBeTruthy();
+  });
+});
+
+describe("RANKING_MODE", () => {
+  afterEach(() => {
+    delete process.env.RANKING_MODE;
+    loadSemanticIndex.mockReset();
+  });
+  it("uses the rule-based score by default", async () => {
+    expect((await call("POST", valid)).body.rankingMode).toBe("rules");
+  });
+  it("uses semantic similarity when set to semantic", async () => {
+    process.env.RANKING_MODE = "semantic";
+    const actual = await vi.importActual<typeof import("../api/lib/semantic")>("../api/lib/semantic");
+    loadSemanticIndex.mockImplementation(actual.loadSemanticIndex);
+    const res = await call("POST", valid);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.rankingMode).toBe("semantic");
+    expect(res.body.topVenue.name).toBe("Leu Gardens");
+  });
+  it("falls back to rules, without failing the request, when the embeddings cannot be loaded", async () => {
+    process.env.RANKING_MODE = "semantic";
+    loadSemanticIndex.mockImplementation(() => {
+      throw new Error("missing");
+    });
+    const res = await call("POST", valid);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.rankingMode).toBe("rules");
+    expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/Semantic ranking unavailable/), expect.any(Error));
   });
 });
 
